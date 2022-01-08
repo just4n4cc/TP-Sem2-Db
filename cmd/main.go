@@ -1,17 +1,28 @@
 package main
 
 import (
+	"github.com/just4n4cc/tp-sem2-db/internal/app"
+	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
+	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
+	"os"
 )
 
+const logMessage = "main:"
+
 func main() {
-	s := &http.Server{
-		Addr: ":5000",
-		//Handler: ,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+	logger.Init(log.DebugLevel)
+
+	message := logMessage
+	defer logger.Info(message + "[EXIT]")
+	application, err := app.NewApp()
+	if err != nil {
+		logger.Error(message, err)
+		os.Exit(1)
 	}
-	log.Fatal(s.ListenAndServe())
+	err = application.Run()
+	if err != nil {
+		logger.Error(message, err)
+		os.Exit(1)
+	}
 }
