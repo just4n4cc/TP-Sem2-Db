@@ -16,8 +16,7 @@ func InitDb() (*sql.DB, error) {
 	message := logMessage + "InitDb:"
 
 	db, err := sql.Connect("postgres",
-		"host=127.0.0.1 port=5000 user=postgres dbname=postgres password=password sslmode=disable")
-	//"user=postgres dbname=tpdb sslmode=disable")
+		"host=127.0.0.1 port=5432 user=just4n4cc dbname=postgres password=password sslmode=disable")
 	if err != nil {
 		logger.Error(message+"err = ", err)
 		return nil, err
@@ -45,11 +44,12 @@ func GetSortOptionsFromRequest(r *http.Request) (*models.SortOptions, error) {
 	}
 
 	if len(q[since]) > 0 {
-		p, err := strconv.ParseInt(q[since][0], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		so.Since = p
+		so.Since = q[since][0]
+		//p, err := strconv.ParseInt(q[since][0], 10, 64)
+		//if err != nil {
+		//	return nil, err
+		//}
+		//so.Since = p
 	}
 
 	if len(q[sort]) > 0 {
@@ -64,7 +64,7 @@ func GetSortOptionsFromRequest(r *http.Request) (*models.SortOptions, error) {
 	}
 
 	if len(q[desc]) > 0 {
-		p, err := strconv.ParseBool(q[since][0])
+		p, err := strconv.ParseBool(q[desc][0])
 		if err != nil {
 			return nil, err
 		}
@@ -73,15 +73,69 @@ func GetSortOptionsFromRequest(r *http.Request) (*models.SortOptions, error) {
 	return so, nil
 }
 
+func SortOptionsToSubquery(so *models.SortOptions, field string) string {
+	if so == nil {
+		return ""
+	}
+	res := ""
+	sign := ""
+	order := ""
+	if !so.Desc {
+		sign = "<="
+		order = "desc"
+	} else {
+		sign = ">="
+	}
+	if so.Since != "" {
+		res += "and " + field + "" + sign
+	}
+	res += " order by " + field + " " + order + " limit " + strconv.Itoa(int(so.Limit))
+	return res
+}
+
 func TranslateDbError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if strings.HasPrefix(err.Error(), "pq: duplicate key value violates unique constraint") {
+	s := err.Error()
+	if strings.HasPrefix(s, "pq: duplicate key value violates unique constraint") {
 		return models.AlreadyExistsError
 	}
-	if err.Error() == "sql: no rows in result set" {
+	if s == "sql: no rows in result set" || strings.Contains(s, "violates foreign key constraint") {
 		return models.NotFoundError
 	}
 	return err
+}
+
+type Set struct {
+	s []interface{}
+}
+
+func NewSet(args []interface{}) *Set {
+	set := new(Set)
+	for _, arg := range args {
+		if !set.Contains(arg) {
+			set.s = append(set.s, arg)
+		}
+	}
+	return set
+}
+
+func (s *Set) Contains(el interface{}) bool {
+	for _, e := range s.s {
+		if e == el {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Set) Add(el interface{}) {
+	if !s.Contains(el) {
+		s.s = append(s.s, el)
+	}
+}
+
+func (s *Set) Length() int {
+	return len(s.s)
 }

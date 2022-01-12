@@ -15,7 +15,8 @@ type Status struct {
 
 type SortOptions struct {
 	Limit int32
-	Since int64
+	//Since int64
+	Since string
 	Sort  string
 	Desc  bool
 }

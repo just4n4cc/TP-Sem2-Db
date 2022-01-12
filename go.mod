@@ -3,6 +3,7 @@ module github.com/just4n4cc/tp-sem2-db
 go 1.17
 
 require (
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.2.0

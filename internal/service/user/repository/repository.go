@@ -35,7 +35,7 @@ func NewRepository(database *sql.DB) *Repository {
 func (s *Repository) UserCreate(u *models.User) ([]*models.User, error) {
 	message := logMessage + "UserCreate:"
 	log.Debug(message + "started")
-	user := jsonToDbModel(u)
+	user := JsonToDbModel(u)
 	query := userCreate
 	_, err := s.db.Queryx(query, user.Nickname, user.Fullname, user.About, user.Email)
 	if err == nil {
@@ -59,12 +59,13 @@ func (s *Repository) UserCreate(u *models.User) ([]*models.User, error) {
 	//	log.Error(message, err)
 	//	return nil, err
 	//}
-	var us []*models.User
-	for _, u := range users {
-		us = append(us, dbToJsonModel(&u))
-	}
+	//var us []*models.User
+	//for _, u := range users {
+	//	us = append(us, DbToJsonModel(&u))
+	//}
 	log.Success(message)
-	return us, models.AlreadyExistsError
+	//return us, models.AlreadyExistsError
+	return DbArrayToJsonModel(users), models.AlreadyExistsError
 }
 
 func (s *Repository) UserProfileGet(nickname string) (*models.User, error) {
@@ -76,7 +77,7 @@ func (s *Repository) UserProfileGet(nickname string) (*models.User, error) {
 	//log.Error(message, err)
 	if err == nil {
 		log.Success(message)
-		return dbToJsonModel(user), nil
+		return DbToJsonModel(user), nil
 	}
 	err = utils.TranslateDbError(err)
 	return nil, err
@@ -85,7 +86,7 @@ func (s *Repository) UserProfileGet(nickname string) (*models.User, error) {
 func (s *Repository) UserProfileUpdate(u *models.User) error {
 	message := logMessage + "UserProfileUpdate:"
 	log.Debug(message + "started")
-	user := jsonToDbModel(u)
+	user := JsonToDbModel(u)
 	query := userProfileUpdate
 	id := -1
 	err := s.db.Get(&id, query, user.Nickname, user.Fullname, user.About, user.Email)

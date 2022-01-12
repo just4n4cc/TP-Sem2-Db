@@ -37,7 +37,7 @@ func (h *Delivery) ThreadCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err = h.useCase.ThreadCreate(vars[slugOrId], posts)
+	posts, err = h.useCase.ThreadCreatePosts(vars[slugOrId], posts)
 	if err != nil {
 		if err != models.AlreadyExistsError && err != models.NotFoundError {
 			response.UnknownError(&w, err, message)
@@ -60,7 +60,7 @@ func (h *Delivery) ThreadGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	logger.Debug(message + "slug or id = " + vars[slugOrId])
 
-	t, err := h.useCase.ThreadGet(vars[slugOrId])
+	t, err := h.useCase.ThreadBySlugOrId(vars[slugOrId])
 	if err != nil {
 		if err != models.NotFoundError {
 			response.UnknownError(&w, err, message)
@@ -89,9 +89,8 @@ func (h *Delivery) ThreadUpdate(w http.ResponseWriter, r *http.Request) {
 		response.UnknownError(&w, err, message)
 		return
 	}
-	t.Slug = vars[slugOrId]
 
-	t, err = h.useCase.ThreadUpdate(t)
+	t, err = h.useCase.ThreadUpdate(vars[slugOrId], t)
 	if err != nil {
 		if err != models.NotFoundError {
 			response.UnknownError(&w, err, message)

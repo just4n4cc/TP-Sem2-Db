@@ -13,14 +13,16 @@ func Init(level log.Level) {
 
 func Fail(message ...string) {
 	if len(message) == 0 {
-		message = append(message, "")
+		logger.Debug("[FAIL]")
+		return
 	}
 	logger.Debug(message[0] + "[FAIL]")
 }
 
 func Success(message ...string) {
 	if len(message) == 0 {
-		message = append(message, "")
+		logger.Debug("[SUCCESS]")
+		return
 	}
 	logger.Debug(message[0] + "[SUCCESS]")
 }
@@ -34,5 +36,5 @@ func Info(args ...interface{}) {
 }
 
 func Error(message string, err error) {
-	logger.Error(message, err)
+	logger.Error(message+" error = ", err)
 }

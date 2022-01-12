@@ -6,21 +6,20 @@ import (
 	deliveryForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/delivery"
 	deliveryPost "github.com/just4n4cc/tp-sem2-db/internal/service/post/delivery"
 	deliveryService "github.com/just4n4cc/tp-sem2-db/internal/service/service/delivery"
+	repositoryService "github.com/just4n4cc/tp-sem2-db/internal/service/service/repository"
+	usecaseService "github.com/just4n4cc/tp-sem2-db/internal/service/service/usecase"
 	deliveryThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/delivery"
 	deliveryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/delivery"
+	repositoryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
 	"net/http"
 	"time"
 
-	//repositoryForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/repository"
-	//repositoryPost "github.com/just4n4cc/tp-sem2-db/internal/service/post/repository"
-	//repositoryService "github.com/just4n4cc/tp-sem2-db/internal/service/service/repository"
-	//repositoryThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/repository"
-	repositoryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
-
-	//usecaseForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/repository"
-	//usecasePost "github.com/just4n4cc/tp-sem2-db/internal/service/post/repository"
-	//usecaseService "github.com/just4n4cc/tp-sem2-db/internal/service/service/repository"
-	//usecaseThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/repository"
+	repositoryForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/repository"
+	usecaseForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/usecase"
+	repositoryPost "github.com/just4n4cc/tp-sem2-db/internal/service/post/repository"
+	usecasePost "github.com/just4n4cc/tp-sem2-db/internal/service/post/usecase"
+	repositoryThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/repository"
+	usecaseThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/usecase"
 	usecaseUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/usecase"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
 	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
@@ -29,7 +28,6 @@ import (
 const logMessage = "app:"
 
 type App struct {
-	// options
 	deliveryForum   *deliveryForum.Delivery
 	deliveryPost    *deliveryPost.Delivery
 	deliveryService *deliveryService.Delivery
@@ -47,15 +45,23 @@ func NewApp() (*App, error) {
 	}
 
 	repoUser := repositoryUser.NewRepository(db)
+	repoPost := repositoryPost.NewRepository(db)
+	repoForum := repositoryForum.NewRepository(db)
+	repoThread := repositoryThread.NewRepository(db)
+	repoService := repositoryService.NewRepository(db)
+
 	useUser := usecaseUser.NewUseCase(repoUser)
-	//deliveryUser := deliveryUser.NewDelivery(usecaseUser)
+	usePost := usecasePost.NewUseCase(repoPost, repoForum, repoThread, repoUser)
+	useThread := usecaseThread.NewUseCase(repoThread, repoPost)
+	useForum := usecaseForum.NewUseCase(repoForum, repoThread)
+	useService := usecaseService.NewUseCase(repoService)
 
 	return &App{
-		//deliveryForum: deliveryUser.NewDelivery(useForum),
-		//deliveryPost: deliveryUser.NewDelivery(usePost),
-		//deliveryService: deliveryUser.NewDelivery(useService),
-		//deliveryThread: deliveryUser.NewDelivery(useThread),
-		deliveryUser: deliveryUser.NewDelivery(useUser),
+		deliveryForum:   deliveryForum.NewDelivery(useForum),
+		deliveryPost:    deliveryPost.NewDelivery(usePost),
+		deliveryService: deliveryService.NewDelivery(useService),
+		deliveryThread:  deliveryThread.NewDelivery(useThread),
+		deliveryUser:    deliveryUser.NewDelivery(useUser),
 	}, nil
 }
 
@@ -96,7 +102,7 @@ func (app *App) Run() error {
 	message := logMessage + "Run:"
 	logger.Info(message + "start")
 
-	port := ":5050"
+	port := ":5000"
 	r := newRouter(app)
 	s := &http.Server{
 		Addr:         port,

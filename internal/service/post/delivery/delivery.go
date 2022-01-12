@@ -38,9 +38,9 @@ func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	logger.Debug(message + "id = " + vars[id])
 	query := r.URL.Query()
-	logger.Debug(message+"related = ", query[related][0])
+	logger.Debug(message+"related = ", query[related])
 
-	p, u, t, f, err := h.useCase.PostGet(vars[id], query[related])
+	p, f, t, u, err := h.useCase.PostGet(vars[id], query[related])
 	if err != nil {
 		if err != models.NotFoundError {
 			response.UnknownError(&w, err, message)
@@ -55,10 +55,16 @@ func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	b := PostGetResponse{
-		Post:   *p,
-		Author: *u,
-		Thread: *t,
-		Forum:  *f,
+		Post: *p,
+	}
+	if f != nil {
+		b.Forum = *f
+	}
+	if t != nil {
+		b.Thread = *t
+	}
+	if u != nil {
+		b.Author = *u
 	}
 	response.SetBody(&w, b, message)
 }

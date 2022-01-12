@@ -35,7 +35,7 @@ func (h *Delivery) ForumCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.useCase.ForumCreate(f)
+	f, err = h.useCase.ForumCreate(f)
 	if err != nil {
 		if err == models.AlreadyExistsError {
 			w.WriteHeader(response.GetStatus(err, message))
@@ -154,7 +154,7 @@ func (h *Delivery) ForumThreads(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Debug(message+"sort options = ", so)
 
-	threads, err := h.useCase.ForumUsers(vars[slug], so)
+	threads, err := h.useCase.ForumThreads(vars[slug], so)
 	if err != nil {
 		if err != models.NotFoundError {
 			response.UnknownError(&w, err, message)

@@ -19,25 +19,26 @@ func GetStatus(err error, message string) int {
 
 func UnknownError(w *http.ResponseWriter, err error, message string) {
 	logger.Error(message, err)
-	(*w).WriteHeader(http.StatusBadGateway)
+	(*w).WriteHeader(http.StatusInternalServerError)
 	return
 }
 
 func SetBody(w *http.ResponseWriter, object interface{}, message string) {
 	if object == nil {
-		logger.Success()
+		logger.Success(message)
+		return
 	}
 	body, err := json.Marshal(object)
 	if err != nil {
 		UnknownError(w, err, message)
-		logger.Fail()
+		logger.Error(message, err)
 		return
 	}
 	_, err = (*w).Write(body)
 	if err != nil {
 		UnknownError(w, err, message)
-		logger.Fail()
+		logger.Error(message, err)
 		return
 	}
-	logger.Success()
+	logger.Success(message)
 }

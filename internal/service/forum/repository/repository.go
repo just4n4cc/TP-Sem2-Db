@@ -1,26 +1,26 @@
 package repository
 
 import (
-	"errors"
 	sql "github.com/jmoiron/sqlx"
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
+	userRepository "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
 	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 )
 
 const (
-	logMessage = "service:forum:repository:"
-	//selectAlreadyExist = `select * from tpdb."Forum"
-	//	where slug = $1`
+	logMessage         = "service:forum:repository:"
+	selectAlreadyExist = `select * from tpdb."Forum"
+		where slug = $1`
 	forumCreate = `insert into tpdb."Forum"
-		(title, user, slug)
+		(title, "user", slug)
 		values($1, $2, $3)`
-	userProfileGet = `select * from tpdb."User"
-		where nickname = $1`
-	userProfileUpdate = `update tpdb."User"
-		set fullname = $2, about = $3, email = $4
-		where nickname = $1
-		returning id`
+	forumUsers = `select distinct * from tpdb."User"
+		where nickname in (
+						   	select author from tpdb."Thread" where forum = $1
+						   	union
+							select author from tpdb."Post" where forum = $1
+						  )`
 )
 
 type Repository struct {
@@ -37,8 +37,7 @@ func (s *Repository) ForumGet(slug string) (*models.Forum, error) {
 	message := logMessage + "ForumGet:"
 	log.Debug(message + "started")
 	forum := new(Forum)
-	//err := s.db.Select(forum, selectAlreadyExist, slug)
-	err := errors.New("lala")
+	err := s.db.Get(forum, selectAlreadyExist, slug)
 	if err == nil {
 		log.Success(message)
 		return dbToJsonModel(forum), nil
@@ -58,7 +57,9 @@ func (s *Repository) ForumCreate(f *models.Forum) (*models.Forum, error) {
 		log.Success(message)
 		return f, nil
 	}
+	log.Error(message, err)
 	err = utils.TranslateDbError(err)
+	log.Error(message, err)
 	if err == models.NotFoundError {
 		log.Success(message)
 		return nil, err
@@ -68,7 +69,41 @@ func (s *Repository) ForumCreate(f *models.Forum) (*models.Forum, error) {
 		return nil, err
 	}
 
-	return s.ForumGet(f.Slug)
+	f, err = s.ForumGet(f.Slug)
+	if err == nil {
+		log.Success(message)
+		return f, models.AlreadyExistsError
+	}
+
+	log.Error(message, err)
+	return nil, err
+}
+
+func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.User, error) {
+	message := logMessage + "ForumCreate:"
+	log.Debug(message + "started")
+	query := forumUsers
+	query += utils.SortOptionsToSubquery(so, "nickname")
+	log.Debug(message + "query = " + query)
+	var users []userRepository.User
+	err := s.db.Select(&users, query, slug)
+	log.Error(message, err)
+	log.Debug(message+"array = ", users)
+	if err == nil {
+		//var us []*models.User
+		//for _, u := range users {
+		//	us = append(us, userRepository.DbToJsonModel(&u))
+		//}
+		log.Success(message)
+		return userRepository.DbArrayToJsonModel(users), nil
+	}
+	err = utils.TranslateDbError(err)
+	if err == models.NotFoundError {
+		log.Success(message)
+	} else {
+		log.Error(message, err)
+	}
+	return nil, err
 }
 
 //func (s *Repository) ForumThreadCreate(thread *models.Thread) (*models.Thread, error) {
