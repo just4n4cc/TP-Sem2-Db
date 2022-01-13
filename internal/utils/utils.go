@@ -4,25 +4,24 @@ import (
 	"errors"
 	sql "github.com/jmoiron/sqlx"
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
-	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-const logMessage = "utils:"
+//const logMessage = "utils:"
 
 func InitDb() (*sql.DB, error) {
-	message := logMessage + "InitDb:"
+	//message := logMessage + "InitDb:"
 
 	db, err := sql.Connect("postgres",
-		"host=127.0.0.1 port=5432 user=just4n4cc dbname=dbproject password=password sslmode=disable")
-	//"host=127.0.0.1 port=5050 user=postgres dbname=postgres password=password sslmode=disable")
+		//"host=127.0.0.1 port=5432 user=just4n4cc dbname=dbproject password=password sslmode=disable")
+		"host=127.0.0.1 port=5050 user=postgres dbname=postgres password=password sslmode=disable")
 	if err != nil {
-		logger.Error(message+"err = ", err)
+		//logger.Error(message+"err = ", err)
 		return nil, err
 	}
-	logger.Info(message + "[SUCCESS]")
+	//logger.Info(message + "[SUCCESS]")
 	return db, nil
 }
 

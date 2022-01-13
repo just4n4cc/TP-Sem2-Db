@@ -61,53 +61,52 @@ CREATE UNLOGGED TABLE tpdb."Vote"
 (
     id SERIAL PRIMARY KEY,
     threadid INT REFERENCES tpdb."Thread"(id) NOT NULL,
---     threadslug CITEXT REFERENCES tpdb."Thread"(Slug) NOT NULL,
     "user" CITEXT REFERENCES tpdb."User"(nickname) NOT NULL,
     vote INT NOT NULL,
     UNIQUE (threadid, "user")
 );
 
-
--- SERVICE USERS
-CREATE FUNCTION service_user_inc() RETURNS TRIGGER AS $user_inc$
-BEGIN
-    UPDATE "Service" SET users = users + 1 WHERE id = 1;
-    RETURN NULL;
-END;
-$user_inc$ LANGUAGE plpgsql;
-CREATE TRIGGER user_inc AFTER INSERT ON tpdb."User" EXECUTE PROCEDURE service_user_inc();
-
--- SERVICE THREADS
-CREATE FUNCTION service_thread_inc() RETURNS TRIGGER AS $thread_inc$
-BEGIN
-    UPDATE "Service" SET threads = threads + 1 WHERE id = 1;
-    RETURN NULL;
-END;
-$thread_inc$ LANGUAGE plpgsql;
-CREATE TRIGGER thread_inc AFTER INSERT ON tpdb."Thread" EXECUTE PROCEDURE service_thread_inc();
-
--- SERVICE POSTS
-CREATE FUNCTION service_post_inc() RETURNS TRIGGER AS $post_inc$
-DECLARE
-    record_count integer;
-BEGIN
-    SELECT COUNT(*) FROM newtbl INTO record_count;
-    UPDATE "Service" SET posts = posts + record_count WHERE id = 1;
-    RETURN NULL;
-END;
-$post_inc$ LANGUAGE plpgsql;
-CREATE TRIGGER post_inc AFTER INSERT ON tpdb."Post"
-    REFERENCING NEW TABLE as newtbl
-    FOR EACH STATEMENT EXECUTE PROCEDURE service_post_inc();
-
--- SERVICE FORUMS
-CREATE FUNCTION service_forum_inc() RETURNS TRIGGER AS $forum_inc$
-BEGIN
-    UPDATE "Service" SET forums = forums + 1 WHERE id = 1;
-    RETURN NULL;
-END;
-$forum_inc$ LANGUAGE plpgsql;
-CREATE TRIGGER forum_inc AFTER INSERT ON tpdb."Forum" EXECUTE PROCEDURE service_forum_inc();
+--
+-- -- SERVICE USERS
+-- CREATE FUNCTION service_user_inc() RETURNS TRIGGER AS $user_inc$
+-- BEGIN
+--     UPDATE "Service" SET users = users + 1 WHERE id = 1;
+--     RETURN NULL;
+-- END;
+-- $user_inc$ LANGUAGE plpgsql;
+-- CREATE TRIGGER user_inc AFTER INSERT ON tpdb."User" EXECUTE PROCEDURE service_user_inc();
+--
+-- -- SERVICE THREADS
+-- CREATE FUNCTION service_thread_inc() RETURNS TRIGGER AS $thread_inc$
+-- BEGIN
+--     UPDATE "Service" SET threads = threads + 1 WHERE id = 1;
+--     RETURN NULL;
+-- END;
+-- $thread_inc$ LANGUAGE plpgsql;
+-- CREATE TRIGGER thread_inc AFTER INSERT ON tpdb."Thread" EXECUTE PROCEDURE service_thread_inc();
+--
+-- -- SERVICE POSTS
+-- CREATE FUNCTION service_post_inc() RETURNS TRIGGER AS $post_inc$
+-- DECLARE
+--     record_count integer;
+-- BEGIN
+--     SELECT COUNT(*) FROM newtbl INTO record_count;
+--     UPDATE "Service" SET posts = posts + record_count WHERE id = 1;
+--     RETURN NULL;
+-- END;
+-- $post_inc$ LANGUAGE plpgsql;
+-- CREATE TRIGGER post_inc AFTER INSERT ON tpdb."Post"
+--     REFERENCING NEW TABLE as newtbl
+--     FOR EACH STATEMENT EXECUTE PROCEDURE service_post_inc();
+--
+-- -- SERVICE FORUMS
+-- CREATE FUNCTION service_forum_inc() RETURNS TRIGGER AS $forum_inc$
+-- BEGIN
+--     UPDATE "Service" SET forums = forums + 1 WHERE id = 1;
+--     RETURN NULL;
+-- END;
+-- $forum_inc$ LANGUAGE plpgsql;
+-- CREATE TRIGGER forum_inc AFTER INSERT ON tpdb."Forum" EXECUTE PROCEDURE service_forum_inc();
 
 -- POST INSERT
 CREATE FUNCTION post_insert() RETURNS TRIGGER AS $post_insert$
@@ -190,7 +189,6 @@ $post_update$ LANGUAGE plpgsql;
 CREATE TRIGGER post_update BEFORE UPDATE ON tpdb."Post" FOR EACH ROW EXECUTE PROCEDURE post_update();
 
 CREATE INDEX IF NOT EXISTS idx_nickname_user ON tpdb."User" USING hash(nickname);
-CREATE INDEX IF NOT EXISTS idx_nickname_user ON tpdb."User" USING btree(nickname);
 CREATE INDEX IF NOT EXISTS idx_email_user ON tpdb."User" USING hash(email);
 
 CREATE INDEX IF NOT EXISTS idx_slug_forum ON tpdb."Forum" USING hash(slug);
@@ -201,10 +199,10 @@ CREATE INDEX IF NOT EXISTS idx_created_thread ON tpdb."Thread" USING btree(creat
 
 CREATE INDEX IF NOT EXISTS idx_thread_post ON tpdb."Post" USING btree(thread);
 CREATE INDEX IF NOT EXISTS idx_created_post ON tpdb."Post" USING btree(created);
-CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree(path);
-CREATE INDEX IF NOT EXISTS idx_gin_path_post ON tpdb."Post" USING gin(path);
+CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree((path[1]));
 
-CREATE INDEX IF NOT EXISTS idx_user_vote ON tpdb."Vote" USING hash("user");
-CREATE INDEX IF NOT EXISTS idx_threadid_vote ON tpdb."Vote" USING hash(threadid);
+CREATE INDEX IF NOT EXISTS idx_user_vote ON tpdb."Vote" USING btree("user", threadid);
 
+VACUUM;
+VACUUM ANALYZE;
 

@@ -45,11 +45,11 @@ const (
 		where id = $1`
 	threadVoteGet = `
 	select vote from tpdb."Vote" 
-	where threadid = $1 and "user" = $2;`
+	where "user" = $2 and threadid = $1;`
 	threadVoteUpdate = `
 	update tpdb."Vote"
 		set vote = $3
-		where threadid = $1 and "user" = $2`
+		where "user" = $2 and threadid = $1`
 )
 
 type Repository struct {
