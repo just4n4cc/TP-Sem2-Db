@@ -26,10 +26,10 @@ func NewDelivery(useCase post.UseCase) *Delivery {
 }
 
 type PostGetResponse struct {
-	Post   models.Post   `json:"post,omitempty"`
-	Author models.User   `json:"author,omitempty"`
-	Thread models.Thread `json:"thread,omitempty"`
-	Forum  models.Forum  `json:"forum,omitempty"`
+	Post   *models.Post   `json:"post,omitempty"`
+	Author *models.User   `json:"author,omitempty"`
+	Thread *models.Thread `json:"thread,omitempty"`
+	Forum  *models.Forum  `json:"forum,omitempty"`
 }
 
 func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
@@ -54,17 +54,17 @@ func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	b := PostGetResponse{
-		Post: *p,
+	b := &PostGetResponse{
+		Post: p,
 	}
 	if f != nil {
-		b.Forum = *f
+		b.Forum = f
 	}
 	if t != nil {
-		b.Thread = *t
+		b.Thread = t
 	}
 	if u != nil {
-		b.Author = *u
+		b.Author = u
 	}
 	response.SetBody(&w, b, message)
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
-	"reflect"
 )
 
 func GetStatus(err error, message string) int {
@@ -25,7 +24,6 @@ func UnknownError(w *http.ResponseWriter, err error, message string) {
 }
 
 func SetBody(w *http.ResponseWriter, object interface{}, message string) {
-	logger.Debug("object type = ", reflect.TypeOf(object))
 	if object == nil {
 		logger.Success(message)
 		return

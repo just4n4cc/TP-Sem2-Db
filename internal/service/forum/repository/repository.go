@@ -15,12 +15,36 @@ const (
 	forumCreate = `insert into tpdb."Forum"
 		(title, "user", slug)
 		values($1, $2, $3) returning *`
-	forumUsers = `select distinct * from tpdb."User"
+	forumUsersNil = `select distinct * from tpdb."User"
 		where nickname in (
 						   	select author from tpdb."Thread" where forum = $1
 						   	union
 							select author from tpdb."Post" where forum = $1
 						  )`
+	forumUsers = `select distinct * from tpdb."User"
+		where nickname in (
+						   	select author from tpdb."Thread" where forum = $1
+						   	union
+							select author from tpdb."Post" where forum = $1
+						  ) order by nickname limit $2`
+	forumUsersDesc = `select distinct * from tpdb."User"
+		where nickname in (
+						   	select author from tpdb."Thread" where forum = $1
+						   	union
+							select author from tpdb."Post" where forum = $1
+						  ) order by nickname desc limit $2`
+	forumUsersSince = `select distinct * from tpdb."User"
+		where nickname in (
+						   	select author from tpdb."Thread" where forum = $1
+						   	union
+							select author from tpdb."Post" where forum = $1
+						  ) and nickname > $3 order by nickname limit $2`
+	forumUsersSinceDesc = `select distinct * from tpdb."User"
+		where nickname in (
+						   	select author from tpdb."Thread" where forum = $1
+						   	union
+							select author from tpdb."Post" where forum = $1
+						  ) and nickname < $3 order by nickname desc limit $2`
 )
 
 type Repository struct {
@@ -57,7 +81,6 @@ func (s *Repository) ForumCreate(f *models.Forum) (*models.Forum, error) {
 		log.Success(message)
 		return dbToJsonModel(forum), nil
 	}
-	log.Error(message, err)
 	err = utils.TranslateDbError(err)
 	log.Error(message, err)
 	if err == models.NotFoundError {
@@ -75,25 +98,39 @@ func (s *Repository) ForumCreate(f *models.Forum) (*models.Forum, error) {
 		return f, models.AlreadyExistsError
 	}
 
+	err = utils.TranslateDbError(err)
 	log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.User, error) {
-	message := logMessage + "ForumCreate:"
+	message := logMessage + "ForumUsers:"
 	log.Debug(message + "started")
-	query := forumUsers
-	query += utils.SortOptionsToSubquery(so, "nickname")
-	log.Debug(message + "query = " + query)
+	query := ""
+	var args []interface{}
+	args = append(args, slug)
+	if so == nil {
+		query = forumUsersNil
+	} else {
+		args = append(args, so.Limit)
+		if so.Since == "" {
+			if so.Desc {
+				query += forumUsersDesc
+			} else {
+				query += forumUsers
+			}
+		} else {
+			args = append(args, so.Since)
+			if so.Desc {
+				query += forumUsersSinceDesc
+			} else {
+				query += forumUsersSince
+			}
+		}
+	}
 	var users []userRepository.User
-	err := s.db.Select(&users, query, slug)
-	log.Error(message, err)
-	log.Debug(message+"array = ", users)
+	err := s.db.Select(&users, query, args...)
 	if err == nil {
-		//var us []*models.User
-		//for _, u := range users {
-		//	us = append(us, userRepository.DbToJsonModel(&u))
-		//}
 		log.Success(message)
 		return userRepository.DbArrayToJsonModel(users), nil
 	}
@@ -105,75 +142,3 @@ func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.
 	}
 	return nil, err
 }
-
-//func (s *Repository) ForumThreadCreate(thread *models.Thread) (*models.Thread, error) {
-//
-//}
-//func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.User, error) {
-//
-//}
-
-//func (s *Repository) UserCreate(u *models.User) ([]*models.User, error) {
-//	message := logMessage + "UserCreate:"
-//	log.Debug(message + "started")
-//	user := jsonToDbModel(u)
-//	query := userCreate
-//	_, err := s.db.Queryx(query, user.Nickname, user.Fullname, user.About, user.Email)
-//	if err == nil {
-//		log.Success(message)
-//		return nil, nil
-//	}
-//	err = utils.TranslateDbError(err)
-//	if err != models.AlreadyExistsError {
-//		return nil, err
-//	}
-//
-//	var users []User
-//	err = s.db.Select(&users, selectAlreadyExist, user.Nickname, user.Email)
-//	if err != nil {
-//		log.Error(message, err)
-//		return nil, err
-//	}
-//	//if len(users) == 0 {
-//	//	err = models.UnexpectedDbBehavior
-//	//	log.Error(message, err)
-//	//	return nil, err
-//	//}
-//	var us []*models.User
-//	for _, u := range users {
-//		us = append(us, dbToJsonModel(&u))
-//	}
-//	log.Success(message)
-//	return us, models.AlreadyExistsError
-//}
-//
-//func (s *Repository) UserProfileGet(nickname string) (*models.User, error) {
-//	message := logMessage + "UserProfileGet:"
-//	log.Debug(message + "started")
-//	query := userProfileGet
-//	user := new(User)
-//	err := s.db.Get(user, query, nickname)
-//	log.Error(message+"error = ", err)
-//	if err == nil {
-//		log.S(message + "[SUCCESS]")
-//		return dbToJsonModel(user), nil
-//	}
-//	err = utils.TranslateDbError(err)
-//	return nil, err
-//}
-//
-//func (s *Repository) UserProfileUpdate(u *models.User) error {
-//	message := logMessage + "UserProfileUpdate:"
-//	log.Debug(message + "started")
-//	user := jsonToDbModel(u)
-//	query := userProfileUpdate
-//	id := -1
-//	err := s.db.Get(&id, query, user.Nickname, user.Fullname, user.About, user.Email)
-//	if err == nil {
-//		log.Debug(message + "[SUCCESS]")
-//		//return nil, nil
-//		return nil
-//	}
-//	err = utils.TranslateDbError(err)
-//	return err
-//}

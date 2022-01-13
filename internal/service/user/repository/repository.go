@@ -61,17 +61,7 @@ func (s *Repository) UserCreate(u *models.User) ([]*models.User, error) {
 		log.Error(message, err)
 		return nil, err
 	}
-	//if len(users) == 0 {
-	//	err = models.UnexpectedDbBehavior
-	//	log.Error(message, err)
-	//	return nil, err
-	//}
-	//var us []*models.User
-	//for _, u := range users {
-	//	us = append(us, DbToJsonModel(&u))
-	//}
 	log.Success(message)
-	//return us, models.AlreadyExistsError
 	return DbArrayToJsonModel(users), models.AlreadyExistsError
 }
 
@@ -81,7 +71,6 @@ func (s *Repository) UserProfileGet(nickname string) (*models.User, error) {
 	query := userProfileGet
 	user := new(User)
 	err := s.db.Get(user, query, nickname)
-	//log.Error(message, err)
 	if err == nil {
 		log.Success(message)
 		return DbToJsonModel(user), nil
@@ -116,7 +105,6 @@ func (s *Repository) UserProfileUpdate(u *models.User) (*models.User, error) {
 	}
 	query = strings.TrimSuffix(query, ", ")
 	query += " " + userProfileUpdateEnd
-	log.Debug(message + "query = " + query)
 	err := s.db.Get(user, query, args...)
 	if err == nil {
 		log.Success(message)

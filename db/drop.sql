@@ -15,6 +15,9 @@ DROP TRIGGER IF EXISTS forum_inc ON tpdb."Forum";
 DROP TRIGGER IF EXISTS post_insert ON tpdb."Post";
 DROP TRIGGER IF EXISTS forum_insert ON tpdb."Forum";
 DROP TRIGGER IF EXISTS thread_insert ON tpdb."Thread";
+DROP TRIGGER IF EXISTS post_insert_forum ON tpdb."Post";
+DROP TRIGGER IF EXISTS thread_insert_forum ON tpdb."Thread";
+DROP TRIGGER IF EXISTS post_update ON tpdb."Post";
 
 DROP FUNCTION IF EXISTS service_user_inc() CASCADE;
 DROP FUNCTION IF EXISTS service_thread_inc() CASCADE;
@@ -23,5 +26,8 @@ DROP FUNCTION IF EXISTS service_post_inc() CASCADE;
 DROP FUNCTION IF EXISTS post_insert() CASCADE;
 DROP FUNCTION IF EXISTS forum_insert() CASCADE;
 DROP FUNCTION IF EXISTS thread_insert() CASCADE;
+DROP FUNCTION IF EXISTS post_insert_forum() CASCADE;
+DROP FUNCTION IF EXISTS thread_insert_forum() CASCADE;
+DROP FUNCTION IF EXISTS post_update() CASCADE;
 -- --------------------------------
 

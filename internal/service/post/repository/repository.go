@@ -16,23 +16,55 @@ const (
 	postsCreate = `insert into tpdb."Post"
 		(parent, author, message, forum, thread, created)
 		values`
-	postsByThread = `select * from tpdb."Post"
+
+	postsByThreadNil = `select * from tpdb."Post"
 		where thread = $1`
+	postsByThreadFlat = `select * from tpdb."Post"
+		where thread = $1 order by created, id limit $2`
+	postsByThreadFlatDesc = `select * from tpdb."Post"
+		where thread = $1 order by created desc, id desc limit $2`
+	postsByThreadFlatSince = `select * from tpdb."Post"
+		where thread = $1 and id > $3 order by created, id limit $2`
+	postsByThreadFlatSinceDesc = `select * from tpdb."Post"
+		where thread = $1 and id < $3 order by created desc, id desc limit $2`
+
+	postsByThreadTree = `select * from tpdb."Post"
+		where thread = $1 order by path, id limit $2`
+	postsByThreadTreeDesc = `select * from tpdb."Post"
+		where thread = $1 order by path desc, id desc limit $2`
+	postsByThreadTreeSince = `select * from tpdb."Post"
+		where thread = $1 and path > (select path from tpdb."Post" where id = $3) order by path, id limit $2`
+	postsByThreadTreeSinceDesc = `select * from tpdb."Post"
+		where thread = $1 and path < (select path from tpdb."Post" where id = $3) order by path desc, id desc limit $2`
+
+	postsByThreadPTree = `select * from tpdb."Post"
+		where path[1] in (select id from tpdb."Post" 
+							where thread = $1 and parent = 0 
+							order by id limit $2)
+		order by path, id`
+	postsByThreadPTreeDesc = `select * from tpdb."Post"
+		where path[1] in (select id from tpdb."Post" 
+							where thread = $1 and parent = 0 
+							order by id desc limit $2)
+		order by path[1] desc, path, id`
+	postsByThreadPTreeSince = `select * from tpdb."Post"
+		where path[1] in (select id from tpdb."Post" 
+							where thread = $1 and parent = 0 and path[1] > ( select path[1] from tpdb."Post"
+																				where id = $3
+																			)
+							order by id limit $2)
+		order by path, id`
+	postsByThreadPTreeSinceDesc = `select * from tpdb."Post"
+		where path[1] in (select id from tpdb."Post" 
+							where thread = $1 and parent = 0 and path[1] < ( select path[1] from tpdb."Post"
+																				where id = $3
+																			)
+							order by id desc limit $2)
+		order by path[1] desc, path, id`
+
 	postUpdate = `update tpdb."Post"
-		set message = $2, isEdited = true
+		set message = $2
 		where id = $1
-		returning *`
-	threadUpdateBySlug = `update tpdb."Thread"
-		set title = $2, message = $3
-		where slug = $1
-		returning *`
-	threadVoteById = `update tpdb."Thread"
-		set votes = votes + $2
-		where id = $1
-		returning *`
-	threadVoteBySlug = `update tpdb."Thread"
-		set votes = votes + $2
-		where slug = $1
 		returning *`
 )
 
@@ -97,7 +129,6 @@ func (s *Repository) PostsCreate(ps []*models.Post) ([]*models.Post, error) {
 	}
 	query = strings.TrimSuffix(query, ",")
 	query = query + " returning *"
-	log.Debug(message + "query = " + query)
 	var posts []Post
 	err := s.db.Select(&posts, query, args...)
 	if err == nil {
@@ -115,9 +146,63 @@ func (s *Repository) PostsCreate(ps []*models.Post) ([]*models.Post, error) {
 func (s *Repository) PostsByThread(id int32, so *models.SortOptions) ([]*models.Post, error) {
 	message := logMessage + "PostsByThread:"
 	log.Debug(message + "started")
-	query := postsByThread + utils.SortOptionsToSubquery(so, "created")
+	query := ""
+	var args []interface{}
+	args = append(args, id)
+	if so == nil {
+		query = postsByThreadNil
+	} else {
+		args = append(args, so.Limit)
+		if so.Sort == "flat" {
+			if so.Since == "" {
+				if so.Desc {
+					query = postsByThreadFlatDesc
+				} else {
+					query = postsByThreadFlat
+				}
+			} else {
+				args = append(args, so.Since)
+				if so.Desc {
+					query = postsByThreadFlatSinceDesc
+				} else {
+					query = postsByThreadFlatSince
+				}
+			}
+		} else if so.Sort == "tree" {
+			if so.Since == "" {
+				if so.Desc {
+					query = postsByThreadTreeDesc
+				} else {
+					query = postsByThreadTree
+				}
+			} else {
+				args = append(args, so.Since)
+				if so.Desc {
+					query = postsByThreadTreeSinceDesc
+				} else {
+					query = postsByThreadTreeSince
+				}
+			}
+		} else {
+			if so.Since == "" {
+				if so.Desc {
+					query = postsByThreadPTreeDesc
+				} else {
+					query = postsByThreadPTree
+				}
+			} else {
+				args = append(args, so.Since)
+				if so.Desc {
+					query = postsByThreadPTreeSinceDesc
+				} else {
+					query = postsByThreadPTreeSince
+				}
+			}
+		}
+	}
+
 	var posts []Post
-	err := s.db.Select(&posts, query, id)
+	err := s.db.Select(&posts, query, args...)
 	if err == nil {
 		var ps []*models.Post
 		for _, p := range posts {

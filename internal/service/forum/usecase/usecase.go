@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"github.com/gofrs/uuid"
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/forum"
 	thread "github.com/just4n4cc/tp-sem2-db/internal/service/thread"
@@ -32,22 +31,17 @@ func (a *Usecase) ForumGet(slug string) (*models.Forum, error) {
 	return a.repositoryForum.ForumGet(slug)
 }
 func (a *Usecase) ForumThreadCreate(thread *models.Thread) (*models.Thread, error) {
-
 	if thread.Title == "" || thread.Forum == "" || thread.Author == "" || thread.Message == "" {
 		return nil, models.ModelFieldError
 	}
-	//thread.Slug = u.String()
-	//if thread.
-	//oclock := time.Now()
-	// TODO initialize created
-	if thread.Slug == "" {
-		u, err := uuid.NewV4()
-		if err != nil {
-			return nil, err
-		}
-		return a.repositoryThread.ThreadCreate(thread, u.String())
-	}
-	return a.repositoryThread.ThreadCreate(thread, thread.Slug)
+	//if thread.Slug == "" {
+	//u, err := uuid.NewV4()
+	//if err != nil {
+	//	return nil, err
+	//}
+	//return a.repositoryThread.ThreadCreate(thread, u.String())
+	//}
+	return a.repositoryThread.ThreadCreate(thread)
 }
 func (a *Usecase) ForumUsers(slug string, so *models.SortOptions) ([]*models.User, error) {
 	if slug == "" {
@@ -58,7 +52,6 @@ func (a *Usecase) ForumUsers(slug string, so *models.SortOptions) ([]*models.Use
 		return nil, err
 	}
 	users, err := a.repositoryForum.ForumUsers(slug, so)
-	// TODO some sort
 	return users, err
 }
 func (a *Usecase) ForumThreads(slug string, so *models.SortOptions) ([]*models.Thread, error) {
@@ -70,6 +63,5 @@ func (a *Usecase) ForumThreads(slug string, so *models.SortOptions) ([]*models.T
 		return nil, err
 	}
 	threads, err := a.repositoryThread.ThreadsByForum(slug, so)
-	// TODO some sort
 	return threads, err
 }

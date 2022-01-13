@@ -11,7 +11,7 @@ const (
 	logMessage   = "service:service:repository:"
 	statusGet    = `select * from "Service" where id = 1`
 	serviceClear = `truncate tpdb."User",  tpdb."Post", tpdb."Thread", tpdb."Forum" cascade;
-		update "Service" set users = 0, posts = 0, threads = 0, forums = 0 where id = 1"`
+		update "Service" set users = 0, posts = 0, threads = 0, forums = 0 where id = 1`
 )
 
 type Repository struct {
@@ -25,7 +25,7 @@ func NewRepository(database *sql.DB) *Repository {
 }
 
 func (s *Repository) ServiceClear() error {
-	message := logMessage + "ServiceStatus:"
+	message := logMessage + "ServiceClear:"
 	log.Debug(message + "started")
 	query := serviceClear
 	rows, err := s.db.Queryx(query)

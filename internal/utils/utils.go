@@ -16,8 +16,8 @@ func InitDb() (*sql.DB, error) {
 	message := logMessage + "InitDb:"
 
 	db, err := sql.Connect("postgres",
-		//"host=127.0.0.1 port=5432 user=just4n4cc dbname=dbproject password=password sslmode=disable")
-		"host=127.0.0.1 port=5050 user=postgres dbname=postgres password=password sslmode=disable")
+		"host=127.0.0.1 port=5432 user=just4n4cc dbname=dbproject password=password sslmode=disable")
+	//"host=127.0.0.1 port=5050 user=postgres dbname=postgres password=password sslmode=disable")
 	if err != nil {
 		logger.Error(message+"err = ", err)
 		return nil, err
@@ -46,11 +46,6 @@ func GetSortOptionsFromRequest(r *http.Request) (*models.SortOptions, error) {
 
 	if len(q[since]) > 0 {
 		so.Since = q[since][0]
-		//p, err := strconv.ParseInt(q[since][0], 10, 64)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//so.Since = p
 	}
 
 	if len(q[sort]) > 0 {
@@ -72,30 +67,6 @@ func GetSortOptionsFromRequest(r *http.Request) (*models.SortOptions, error) {
 		so.Desc = p
 	}
 	return so, nil
-}
-
-func SortOptionsToSubquery(so *models.SortOptions, field string) string {
-	if so == nil {
-		return ""
-	}
-	res := ""
-	sign := ""
-	order := ""
-	if so.Desc {
-		sign = "<="
-		order = "desc"
-	} else {
-		sign = ">="
-	}
-	if so.Since != "" {
-		res += " and " + field + " " + sign + " "
-		if field == "created" {
-			res += "timestamp "
-		}
-		res += "'" + so.Since + "'"
-	}
-	res += " order by " + field + " " + order + " limit " + strconv.Itoa(int(so.Limit))
-	return res
 }
 
 func TranslateDbError(err error) error {

@@ -6,7 +6,6 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/service/post"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/thread"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/user"
-	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"strconv"
 	"strings"
 )
@@ -32,16 +31,14 @@ func (a *UseCase) PostGet(id string, related []string) (*models.Post, *models.Fo
 	if err != nil {
 		return nil, nil, nil, nil, models.ModelFieldError
 	}
-	post, err := a.repositoryPost.PostGet(i)
+	p, err := a.repositoryPost.PostGet(i)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 	relatedModels := ""
-	log.Debug("here")
 	for _, r := range related {
 		relatedModels += r
 	}
-	log.Debug("here")
 	var f *models.Forum
 	var t *models.Thread
 	var u *models.User
@@ -49,28 +46,28 @@ func (a *UseCase) PostGet(id string, related []string) (*models.Post, *models.Fo
 	t = nil
 	u = nil
 	if strings.Contains(relatedModels, "user") {
-		u, err = a.repositoryUser.UserProfileGet(post.Author)
+		u, err = a.repositoryUser.UserProfileGet(p.Author)
 		if err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
 	if strings.Contains(relatedModels, "thread") {
-		t, err = a.repositoryThread.ThreadById(post.Thread)
+		t, err = a.repositoryThread.ThreadById(p.Thread)
 		if err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
 	if strings.Contains(relatedModels, "forum") {
-		f, err = a.repositoryForum.ForumGet(post.Forum)
+		f, err = a.repositoryForum.ForumGet(p.Forum)
 		if err != nil {
 			return nil, nil, nil, nil, err
 		}
 	}
-	return post, f, t, u, nil
+	return p, f, t, u, nil
 }
 func (a *UseCase) PostUpdate(post *models.Post) (*models.Post, error) {
 	if post.Message == "" {
-		return nil, models.ModelFieldError
+		return a.repositoryPost.PostGet(post.Id)
 	}
 	return a.repositoryPost.PostUpdate(post)
 }

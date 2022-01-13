@@ -5,7 +5,6 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/service/post"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/thread"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
-	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"strconv"
 	"time"
 )
@@ -22,22 +21,18 @@ func NewUseCase(repositoryThread thread.Repository, repositoryPost post.Reposito
 	}
 }
 func (a *Usecase) ThreadCreatePosts(slugOrId string, posts []*models.Post) ([]*models.Post, error) {
-	if slugOrId == "" {
-		return nil, models.ModelFieldError
-	}
-	if len(posts) == 0 {
-		return posts, nil
-	}
-	var forum string
-	var threadId int32
 	ps, err := a.ThreadPosts(slugOrId, nil)
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("posts = ", ps, ", len = ", len(ps))
+	if len(posts) == 0 {
+		return posts, nil
+	}
 	idSet := new(utils.Set)
 	idSet.Add(int64(0))
 
+	var forum string
+	var threadId int32
 	if len(ps) == 0 {
 		t, err := a.ThreadBySlugOrId(slugOrId)
 		if err != nil {
@@ -53,7 +48,6 @@ func (a *Usecase) ThreadCreatePosts(slugOrId string, posts []*models.Post) ([]*m
 	for _, p := range ps {
 		idSet.Add(p.Id)
 	}
-	log.Debug("set = ", idSet, ", len = ", idSet.Length())
 
 	if err != nil {
 		return nil, err
@@ -67,9 +61,7 @@ func (a *Usecase) ThreadCreatePosts(slugOrId string, posts []*models.Post) ([]*m
 		if p.Author == "" || p.Message == "" {
 			return nil, models.ModelFieldError
 		}
-		log.Debug("parent = ", p.Parent)
 		if !idSet.Contains(p.Parent) {
-			log.Error("here!", models.AlreadyExistsError)
 			return nil, models.AlreadyExistsError
 		}
 	}
@@ -85,10 +77,17 @@ func (a *Usecase) ThreadBySlugOrId(slugOrId string) (*models.Thread, error) {
 	}
 	return a.repositoryThread.ThreadBySlug(slugOrId)
 }
+
 func (a *Usecase) ThreadUpdate(slugOrId string, thread *models.Thread) (*models.Thread, error) {
-	if slugOrId == "" || thread.Message == "" || thread.Title == "" {
+	if thread.Message == "" && thread.Title == "" {
+		return a.ThreadBySlugOrId(slugOrId)
+	}
+	if slugOrId == "" {
 		return nil, models.ModelFieldError
 	}
+	//if slugOrId == "" || thread.Message == "" || thread.Title == "" {
+	//	return nil, models.ModelFieldError
+	//}
 	id, err := strconv.ParseInt(slugOrId, 10, 32)
 	if err == nil {
 		thread.Id = int32(id)
@@ -97,16 +96,9 @@ func (a *Usecase) ThreadUpdate(slugOrId string, thread *models.Thread) (*models.
 	thread.Slug = slugOrId
 	return a.repositoryThread.ThreadUpdateBySlug(thread)
 }
+
 func (a *Usecase) ThreadPosts(slugOrId string, so *models.SortOptions) ([]*models.Post, error) {
-	if slugOrId == "" {
-		return nil, models.ModelFieldError
-	}
-	id, err := strconv.ParseInt(slugOrId, 10, 32)
-	if err == nil {
-		return a.repositoryPost.PostsByThread(int32(id), so)
-	}
-	var t *models.Thread
-	t, err = a.repositoryThread.ThreadBySlug(slugOrId)
+	t, err := a.ThreadBySlugOrId(slugOrId)
 	if err != nil {
 		return nil, err
 	}

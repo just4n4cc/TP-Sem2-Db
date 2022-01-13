@@ -4,25 +4,23 @@ import (
 	"github.com/gorilla/mux"
 	sql "github.com/jmoiron/sqlx"
 	deliveryForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/delivery"
+	repositoryForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/repository"
+	usecaseForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/usecase"
 	deliveryPost "github.com/just4n4cc/tp-sem2-db/internal/service/post/delivery"
+	repositoryPost "github.com/just4n4cc/tp-sem2-db/internal/service/post/repository"
+	usecasePost "github.com/just4n4cc/tp-sem2-db/internal/service/post/usecase"
 	deliveryService "github.com/just4n4cc/tp-sem2-db/internal/service/service/delivery"
 	repositoryService "github.com/just4n4cc/tp-sem2-db/internal/service/service/repository"
 	usecaseService "github.com/just4n4cc/tp-sem2-db/internal/service/service/usecase"
 	deliveryThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/delivery"
-	deliveryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/delivery"
-	repositoryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
-	"net/http"
-	"time"
-
-	repositoryForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/repository"
-	usecaseForum "github.com/just4n4cc/tp-sem2-db/internal/service/forum/usecase"
-	repositoryPost "github.com/just4n4cc/tp-sem2-db/internal/service/post/repository"
-	usecasePost "github.com/just4n4cc/tp-sem2-db/internal/service/post/usecase"
 	repositoryThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/repository"
 	usecaseThread "github.com/just4n4cc/tp-sem2-db/internal/service/thread/usecase"
+	deliveryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/delivery"
+	repositoryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
 	usecaseUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/usecase"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
 	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
+	"net/http"
 )
 
 const logMessage = "app:"
@@ -72,9 +70,17 @@ func contentTypeMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func urlPrintMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger.Info("URL: " + r.URL.String())
+		next.ServeHTTP(w, r)
+	})
+}
+
 func newRouter(app *App) *mux.Router {
 	r := mux.NewRouter()
 	r.Use(contentTypeMiddleware)
+	r.Use(urlPrintMiddleware)
 	rApi := r.PathPrefix("/api").Subrouter()
 
 	rApi.HandleFunc("/forum/create", app.deliveryForum.ForumCreate).Methods("POST")
@@ -113,10 +119,10 @@ func (app *App) Run() error {
 	port := ":5000"
 	r := newRouter(app)
 	s := &http.Server{
-		Addr:         port,
-		Handler:      r,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Addr:    port,
+		Handler: r,
+		//ReadTimeout:  10 * time.Second,
+		//WriteTimeout: 10 * time.Second,
 	}
 	err := s.ListenAndServe()
 	if err != nil {

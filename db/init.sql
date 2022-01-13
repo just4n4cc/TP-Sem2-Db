@@ -15,7 +15,7 @@ INSERT INTO "Service" DEFAULT VALUES;
 CREATE UNLOGGED TABLE tpdb."User"
 (
     id SERIAL PRIMARY KEY,
-    nickname CITEXT UNIQUE NOT NULL,
+    nickname CITEXT COLLATE "C" UNIQUE NOT NULL,
     fullname TEXT NOT NULL,
     about TEXT,
     email CITEXT UNIQUE NOT NULL
@@ -39,7 +39,7 @@ CREATE UNLOGGED TABLE tpdb."Thread"
     forum CITEXT REFERENCES tpdb."Forum"(slug) NOT NULL,
     message TEXT NOT NULL,
     votes INT DEFAULT 0,
-    slug CITEXT UNIQUE NOT NULL,
+    slug CITEXT,
     created TIMESTAMP WITH TIME ZONE
 );
 
@@ -61,10 +61,10 @@ CREATE UNLOGGED TABLE tpdb."Vote"
 (
     id SERIAL PRIMARY KEY,
     threadid INT REFERENCES tpdb."Thread"(id) NOT NULL,
-    threadslug CITEXT REFERENCES tpdb."Thread"(Slug) NOT NULL,
+--     threadslug CITEXT REFERENCES tpdb."Thread"(Slug) NOT NULL,
     "user" CITEXT REFERENCES tpdb."User"(nickname) NOT NULL,
     vote INT NOT NULL,
-    UNIQUE (threadid, threadslug, "user")
+    UNIQUE (threadid, "user")
 );
 
 
@@ -114,6 +114,7 @@ CREATE FUNCTION post_insert() RETURNS TRIGGER AS $post_insert$
 DECLARE
     prevpath INT[];
 BEGIN
+--     PATH
     IF new.parent != 0 THEN
         SELECT path FROM tpdb."Post" WHERE id = new.parent INTO prevpath;
         new.path := array_append(prevpath, new.id);
@@ -124,6 +125,24 @@ BEGIN
 END
 $post_insert$ LANGUAGE plpgsql;
 CREATE TRIGGER post_insert BEFORE INSERT ON tpdb."Post" FOR EACH ROW EXECUTE PROCEDURE post_insert();
+
+-- POST INSERT FORUM
+CREATE FUNCTION post_insert_forum() RETURNS TRIGGER AS $post_insert_forum$
+BEGIN
+    UPDATE tpdb."Forum" SET posts = posts + 1 WHERE slug = new.forum;
+    RETURN new;
+END
+$post_insert_forum$ LANGUAGE plpgsql;
+CREATE TRIGGER post_insert_forum AFTER INSERT ON tpdb."Post" FOR EACH ROW EXECUTE PROCEDURE post_insert_forum();
+
+-- THREAD INSERT FORUM
+CREATE FUNCTION thread_insert_forum() RETURNS TRIGGER AS $thread_insert_forum$
+BEGIN
+    UPDATE tpdb."Forum" SET threads = threads + 1 WHERE slug = new.forum;
+    RETURN new;
+END
+$thread_insert_forum$ LANGUAGE plpgsql;
+CREATE TRIGGER thread_insert_forum AFTER INSERT ON tpdb."Thread" FOR EACH ROW EXECUTE PROCEDURE thread_insert_forum();
 
 -- FORUM INSTERT
 CREATE FUNCTION forum_insert() RETURNS TRIGGER AS $forum_insert$
@@ -158,6 +177,35 @@ BEGIN
 END
 $thread_insert$ LANGUAGE plpgsql;
 CREATE TRIGGER thread_insert BEFORE INSERT ON tpdb."Thread" FOR EACH ROW EXECUTE PROCEDURE thread_insert();
+
+-- POST UPDATE
+CREATE FUNCTION post_update() RETURNS TRIGGER AS $post_update$
+BEGIN
+    IF old.message != new.message THEN
+        new.isedited := true;
+    END IF;
+    RETURN new;
+END
+$post_update$ LANGUAGE plpgsql;
+CREATE TRIGGER post_update BEFORE UPDATE ON tpdb."Post" FOR EACH ROW EXECUTE PROCEDURE post_update();
+
+CREATE INDEX IF NOT EXISTS idx_nickname_user ON tpdb."User" USING hash(nickname);
+CREATE INDEX IF NOT EXISTS idx_nickname_user ON tpdb."User" USING btree(nickname);
+CREATE INDEX IF NOT EXISTS idx_email_user ON tpdb."User" USING hash(email);
+
+CREATE INDEX IF NOT EXISTS idx_slug_forum ON tpdb."Forum" USING hash(slug);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_slug_thread ON tpdb."Thread" USING btree(slug) WHERE slug <> '';
+CREATE INDEX IF NOT EXISTS idx_forum_thread ON tpdb."Thread" USING hash(forum);
+CREATE INDEX IF NOT EXISTS idx_created_thread ON tpdb."Thread" USING btree(created);
+
+CREATE INDEX IF NOT EXISTS idx_thread_post ON tpdb."Post" USING btree(thread);
+CREATE INDEX IF NOT EXISTS idx_created_post ON tpdb."Post" USING btree(created);
+CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree(path);
+CREATE INDEX IF NOT EXISTS idx_gin_path_post ON tpdb."Post" USING gin(path);
+
+CREATE INDEX IF NOT EXISTS idx_user_vote ON tpdb."Vote" USING hash("user");
+CREATE INDEX IF NOT EXISTS idx_threadid_vote ON tpdb."Vote" USING hash(threadid);
 
 -- -- VOTE INSTERT
 -- CREATE FUNCTION vote_insert() RETURNS TRIGGER AS $vote_insert$

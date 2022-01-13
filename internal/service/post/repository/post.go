@@ -2,21 +2,22 @@ package repository
 
 import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
+	"github.com/lib/pq"
 	"time"
 )
 
 type PostPath []int64
 
 type Post struct {
-	Id       int64     `db:"id"`
-	Parent   int64     `db:"parent"`
-	Author   string    `db:"author"`
-	Message  string    `db:"message"`
-	IsEdited bool      `db:"isedited"`
-	Forum    string    `db:"forum"`
-	Thread   int32     `db:"thread"`
-	Created  time.Time `db:"created"`
-	Path     PostPath  `db:"path"`
+	Id       int64         `db:"id"`
+	Parent   int64         `db:"parent"`
+	Author   string        `db:"author"`
+	Message  string        `db:"message"`
+	IsEdited bool          `db:"isedited"`
+	Forum    string        `db:"forum"`
+	Thread   int32         `db:"thread"`
+	Created  time.Time     `db:"created"`
+	Path     pq.Int64Array `db:"path"`
 }
 
 func JsonToDbModel(p *models.Post) *Post {
