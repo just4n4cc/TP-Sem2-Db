@@ -26,6 +26,4 @@ var (
 	NotFoundError      = errors.New("user not found")
 
 	ModelFieldError = errors.New("some error with field of model")
-
-	UnexpectedDbBehavior = errors.New("unexpected db behavior detected")
 )

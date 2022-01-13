@@ -14,6 +14,6 @@ type Thread struct {
 }
 
 type Vote struct {
-	Nickname string `json:"nickname,omitempty"`
-	Voice    int32  `json:"voice,omitempty"`
+	Nickname string `json:"nickname"`
+	Voice    int32  `json:"voice"`
 }

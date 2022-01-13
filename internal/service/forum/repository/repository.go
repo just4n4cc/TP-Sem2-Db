@@ -14,7 +14,7 @@ const (
 		where slug = $1`
 	forumCreate = `insert into tpdb."Forum"
 		(title, "user", slug)
-		values($1, $2, $3)`
+		values($1, $2, $3) returning *`
 	forumUsers = `select distinct * from tpdb."User"
 		where nickname in (
 						   	select author from tpdb."Thread" where forum = $1
@@ -52,10 +52,10 @@ func (s *Repository) ForumCreate(f *models.Forum) (*models.Forum, error) {
 	log.Debug(message + "started")
 	forum := jsonToDbModel(f)
 	query := forumCreate
-	_, err := s.db.Queryx(query, forum.Title, forum.User, forum.Slug)
+	err := s.db.Get(forum, query, forum.Title, forum.User, forum.Slug)
 	if err == nil {
 		log.Success(message)
-		return f, nil
+		return dbToJsonModel(forum), nil
 	}
 	log.Error(message, err)
 	err = utils.TranslateDbError(err)

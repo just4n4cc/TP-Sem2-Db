@@ -21,7 +21,7 @@ USER postgres
 
 RUN /etc/init.d/postgresql start &&\
     psql --command "CREATE USER just4n4cc WITH SUPERUSER PASSWORD 'password';" &&\
-    createdb -O just4n4cc postgres &&\
+    createdb -O just4n4cc dbproject &&\
     /etc/init.d/postgresql stop
 
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PGVER/main/pg_hba.conf
@@ -35,4 +35,4 @@ COPY --from=build /app/main .
 
 USER root
 ENV PGPASSWORD password
-CMD service postgresql start && psql -h localhost -d postgres -U just4n4cc -p 5432 -a -q -f ./db/db.sql && ./main
+CMD service postgresql start && psql -h localhost -d dbproject -U just4n4cc -p 5432 -a -q -f ./db/db.sql && ./main

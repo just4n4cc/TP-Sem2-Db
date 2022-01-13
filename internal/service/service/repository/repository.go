@@ -28,7 +28,13 @@ func (s *Repository) ServiceClear() error {
 	message := logMessage + "ServiceStatus:"
 	log.Debug(message + "started")
 	query := serviceClear
-	_, err := s.db.Queryx(query)
+	rows, err := s.db.Queryx(query)
+	if rows != nil {
+		e := rows.Close()
+		if e != nil {
+			log.Error(message, e)
+		}
+	}
 	if err == nil {
 		log.Success(message)
 		return nil

@@ -5,7 +5,6 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/forum"
 	thread "github.com/just4n4cc/tp-sem2-db/internal/service/thread"
-	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 )
 
 type Usecase struct {
@@ -35,19 +34,20 @@ func (a *Usecase) ForumGet(slug string) (*models.Forum, error) {
 func (a *Usecase) ForumThreadCreate(thread *models.Thread) (*models.Thread, error) {
 
 	if thread.Title == "" || thread.Forum == "" || thread.Author == "" || thread.Message == "" {
-		log.Debug("here?")
 		return nil, models.ModelFieldError
 	}
-	u, err := uuid.NewV4()
-	log.Debug("here?")
-	if err != nil {
-		return nil, err
-	}
-	log.Debug("mb?")
-	thread.Slug = u.String()
-	log.Debug("tyt?")
+	//thread.Slug = u.String()
+	//if thread.
+	//oclock := time.Now()
 	// TODO initialize created
-	return a.repositoryThread.ThreadCreate(thread)
+	if thread.Slug == "" {
+		u, err := uuid.NewV4()
+		if err != nil {
+			return nil, err
+		}
+		return a.repositoryThread.ThreadCreate(thread, u.String())
+	}
+	return a.repositoryThread.ThreadCreate(thread, thread.Slug)
 }
 func (a *Usecase) ForumUsers(slug string, so *models.SortOptions) ([]*models.User, error) {
 	if slug == "" {

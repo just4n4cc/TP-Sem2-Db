@@ -1,6 +1,4 @@
 DROP SCHEMA IF EXISTS tpdb CASCADE;
-CREATE EXTENSION IF NOT EXISTS citext;
-CREATE SCHEMA tpdb;
 
 -- DROP ALL
 DROP TABLE IF EXISTS tpdb."User" CASCADE;
@@ -13,12 +11,18 @@ DROP TRIGGER IF EXISTS user_inc ON tpdb."User";
 DROP TRIGGER IF EXISTS thread_inc ON tpdb."Thread";
 DROP TRIGGER IF EXISTS post_inc ON tpdb."Post";
 DROP TRIGGER IF EXISTS forum_inc ON tpdb."Forum";
+DROP TRIGGER IF EXISTS forum_insert ON tpdb."Forum";
 
 DROP FUNCTION IF EXISTS service_user_inc() CASCADE;
 DROP FUNCTION IF EXISTS service_thread_inc() CASCADE;
 DROP FUNCTION IF EXISTS service_forum_inc() CASCADE;
 DROP FUNCTION IF EXISTS service_post_inc() CASCADE;
+DROP FUNCTION IF EXISTS forum_insert() CASCADE;
 -- --------------------------------
+
+-- INIT ALL
+CREATE EXTENSION IF NOT EXISTS citext;
+CREATE SCHEMA tpdb;
 
 CREATE UNLOGGED TABLE "Service"
 (
@@ -115,18 +119,32 @@ END;
 $forum_inc$ LANGUAGE plpgsql;
 CREATE TRIGGER forum_inc AFTER INSERT ON tpdb."Forum" EXECUTE PROCEDURE service_forum_inc();
 
+-- FORUM INSTERT
+CREATE FUNCTION forum_insert() RETURNS TRIGGER AS $forum_insert$
+    DECLARE
+        nick text;
+    BEGIN
+        SELECT nickname FROM tpdb."User" WHERE nickname = new."user" INTO nick;
+        IF nick != '' THEN
+            new."user" := nick;
+        END IF;
+        RETURN new;
+    END
+$forum_insert$ LANGUAGE plpgsql;
+CREATE TRIGGER forum_insert BEFORE INSERT ON tpdb."Forum" FOR EACH ROW EXECUTE PROCEDURE forum_insert();
 
--- SELECT * FROM tpdb."User";
--- SELECT * FROM tpdb."Forum";
--- SELECT * FROM tpdb."Thread";
--- SELECT * FROM tpdb."Post";
+SELECT * FROM tpdb."User";
+SELECT * FROM tpdb."Forum";
+SELECT * FROM tpdb."Thread";
+SELECT * FROM tpdb."Post";
 -- SELECT * FROM "Service";
 
--- INSERT INTO tpdb."User" (nickname, fullname, about, email) VALUES ('lala', 'lala', 'lala', 'lala@mail.ru');
+INSERT INTO tpdb."User" (nickname, fullname, about, email) VALUES ('lala', 'lala', 'lala', 'lala@mail.ru');
 -- INSERT INTO tpdb."User" (nickname, fullname, about, email) VALUES ('sasha', 'lala', 'lala', 'sasha@mail.ru');
 -- INSERT INTO tpdb."User" (nickname, fullname, about, email) VALUES ('ksyasha', 'lala', 'lala', 'lalala@mail.ru');
 --
--- INSERT INTO tpdb."Forum" (title, "user", slug, posts, threads) VALUES ('forum', 'lala', 'someforum', 0, 0);
+INSERT INTO tpdb."Forum" (title, "user", slug, posts, threads) VALUES ('forum', 'LALA', 'someforum', 0, 0);
+-- INSERT INTO tpdb."Forum" (title, "user", slug, posts, threads) VALUES ('forum', 'saskdjf', 'someforum', 0, 0);
 -- INSERT INTO tpdb."Forum" (title, "user", slug, posts, threads) VALUES ('lala', 'ksyasha', 'lalaforum', 0, 0);
 --
 -- INSERT INTO tpdb."Thread" (title, author, forum, message, votes, slug, created)
@@ -161,3 +179,6 @@ CREATE TRIGGER forum_inc AFTER INSERT ON tpdb."Forum" EXECUTE PROCEDURE service_
 -- values (0, 'lala', 'hahahahah', 'someforum', 1), (0, 'lala', 'ahhahaha', 'someforum', 1) returning *;
 
 -- update tpdb."Post" set created = '2023-04-10T15:31:49.659Z' where created is null;
+
+SHOW max_connections;
+select count(*) from pg_stat_activity;

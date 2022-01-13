@@ -16,7 +16,8 @@ func InitDb() (*sql.DB, error) {
 	message := logMessage + "InitDb:"
 
 	db, err := sql.Connect("postgres",
-		"host=127.0.0.1 port=5432 user=just4n4cc dbname=postgres password=password sslmode=disable")
+		//"host=127.0.0.1 port=5432 user=just4n4cc dbname=dbproject password=password sslmode=disable")
+		"host=127.0.0.1 port=5050 user=postgres dbname=postgres password=password sslmode=disable")
 	if err != nil {
 		logger.Error(message+"err = ", err)
 		return nil, err
@@ -80,14 +81,18 @@ func SortOptionsToSubquery(so *models.SortOptions, field string) string {
 	res := ""
 	sign := ""
 	order := ""
-	if !so.Desc {
+	if so.Desc {
 		sign = "<="
 		order = "desc"
 	} else {
 		sign = ">="
 	}
 	if so.Since != "" {
-		res += "and " + field + "" + sign
+		res += " and " + field + " " + sign + " "
+		if field == "created" {
+			res += "timestamp "
+		}
+		res += "'" + so.Since + "'"
 	}
 	res += " order by " + field + " " + order + " limit " + strconv.Itoa(int(so.Limit))
 	return res

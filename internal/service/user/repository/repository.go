@@ -5,6 +5,8 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
 	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -16,10 +18,9 @@ const (
 		values($1, $2, $3, $4)`
 	userProfileGet = `select * from tpdb."User"
 		where nickname = $1`
-	userProfileUpdate = `update tpdb."User"
-		set fullname = $2, about = $3, email = $4
-		where nickname = $1
-		returning id`
+	userProfileUpdateBegin = `update tpdb."User" set `
+	userProfileUpdateEnd   = `where nickname = $1
+		returning *`
 )
 
 type Repository struct {
@@ -37,7 +38,13 @@ func (s *Repository) UserCreate(u *models.User) ([]*models.User, error) {
 	log.Debug(message + "started")
 	user := JsonToDbModel(u)
 	query := userCreate
-	_, err := s.db.Queryx(query, user.Nickname, user.Fullname, user.About, user.Email)
+	rows, err := s.db.Queryx(query, user.Nickname, user.Fullname, user.About, user.Email)
+	if rows != nil {
+		e := rows.Close()
+		if e != nil {
+			log.Error(message, e)
+		}
+	}
 	if err == nil {
 		log.Success(message)
 		return nil, nil
@@ -83,18 +90,39 @@ func (s *Repository) UserProfileGet(nickname string) (*models.User, error) {
 	return nil, err
 }
 
-func (s *Repository) UserProfileUpdate(u *models.User) error {
+func (s *Repository) UserProfileUpdate(u *models.User) (*models.User, error) {
 	message := logMessage + "UserProfileUpdate:"
 	log.Debug(message + "started")
 	user := JsonToDbModel(u)
-	query := userProfileUpdate
-	id := -1
-	err := s.db.Get(&id, query, user.Nickname, user.Fullname, user.About, user.Email)
+	query := userProfileUpdateBegin
+	//set fullname = $2, about = $3, email = $4
+	num := 2
+	var args []interface{}
+	args = append(args, user.Nickname)
+	if user.Fullname != "" {
+		query += "fullname = $" + strconv.Itoa(num) + ", "
+		args = append(args, user.Fullname)
+		num++
+	}
+	if user.About != "" {
+		query += "about = $" + strconv.Itoa(num) + ", "
+		args = append(args, user.About)
+		num++
+	}
+	if user.Email != "" {
+		query += "email = $" + strconv.Itoa(num) + ", "
+		args = append(args, user.Email)
+		num++
+	}
+	query = strings.TrimSuffix(query, ", ")
+	query += " " + userProfileUpdateEnd
+	log.Debug(message + "query = " + query)
+	err := s.db.Get(user, query, args...)
 	if err == nil {
 		log.Success(message)
 		//return nil, nil
-		return nil
+		return DbToJsonModel(user), nil
 	}
 	err = utils.TranslateDbError(err)
-	return err
+	return nil, err
 }

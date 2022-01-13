@@ -90,8 +90,8 @@ func (h *Delivery) UserProfileUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	u.Nickname = vars[nickname]
 
-	//u, err = h.useCase.UserProfileUpdate(u)
-	err = h.useCase.UserProfileUpdate(u)
+	u, err = h.useCase.UserProfileUpdate(u)
+	//err = h.useCase.UserProfileUpdate(u)
 	if err != nil {
 		if err != models.AlreadyExistsError && err != models.NotFoundError {
 			response.UnknownError(&w, err, message)

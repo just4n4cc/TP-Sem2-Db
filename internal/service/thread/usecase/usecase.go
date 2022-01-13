@@ -25,6 +25,9 @@ func (a *Usecase) ThreadCreatePosts(slugOrId string, posts []*models.Post) ([]*m
 	if slugOrId == "" {
 		return nil, models.ModelFieldError
 	}
+	if len(posts) == 0 {
+		return posts, nil
+	}
 	var forum string
 	var threadId int32
 	ps, err := a.ThreadPosts(slugOrId, nil)
@@ -117,9 +120,9 @@ func (a *Usecase) ThreadVote(slugOrId string, vote *models.Vote) (*models.Thread
 		return nil, models.ModelFieldError
 	}
 
-	id, err := strconv.ParseInt(slugOrId, 10, 32)
-	if err == nil {
-		return a.repositoryThread.ThreadVoteById(int32(id), vote)
+	t, err := a.ThreadBySlugOrId(slugOrId)
+	if err != nil {
+		return nil, err
 	}
-	return a.repositoryThread.ThreadVoteBySlug(slugOrId, vote)
+	return a.repositoryThread.ThreadVote(t, vote)
 }

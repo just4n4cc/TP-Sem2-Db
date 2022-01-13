@@ -65,8 +65,16 @@ func NewApp() (*App, error) {
 	}, nil
 }
 
+func contentTypeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func newRouter(app *App) *mux.Router {
 	r := mux.NewRouter()
+	r.Use(contentTypeMiddleware)
 	rApi := r.PathPrefix("/api").Subrouter()
 
 	rApi.HandleFunc("/forum/create", app.deliveryForum.ForumCreate).Methods("POST")

@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+type PostPath []int64
+
 type Post struct {
 	Id       int64     `db:"id"`
 	Parent   int64     `db:"parent"`
@@ -14,6 +16,7 @@ type Post struct {
 	Forum    string    `db:"forum"`
 	Thread   int32     `db:"thread"`
 	Created  time.Time `db:"created"`
+	Path     PostPath  `db:"path"`
 }
 
 func JsonToDbModel(p *models.Post) *Post {

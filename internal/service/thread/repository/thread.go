@@ -16,27 +16,27 @@ type Thread struct {
 	Created time.Time `db:"created"`
 }
 
-func jsonToDbModel(f *models.Thread) *Thread {
+func jsonToDbModel(t *models.Thread) *Thread {
 	return &Thread{
-		Id:      f.Id,
-		Title:   f.Title,
-		Author:  f.Author,
-		Forum:   f.Forum,
-		Message: f.Message,
-		Votes:   f.Votes,
-		Slug:    f.Slug,
-		Created: f.Created,
+		Id:      t.Id,
+		Title:   t.Title,
+		Author:  t.Author,
+		Forum:   t.Forum,
+		Message: t.Message,
+		Votes:   t.Votes,
+		Slug:    t.Slug,
+		Created: t.Created,
 	}
 }
-func dbToJsonModel(f *Thread) *models.Thread {
+func dbToJsonModel(t *Thread) *models.Thread {
 	return &models.Thread{
-		Id:      f.Id,
-		Title:   f.Title,
-		Author:  f.Author,
-		Forum:   f.Forum,
-		Message: f.Message,
-		Votes:   f.Votes,
-		Slug:    f.Slug,
-		Created: f.Created,
+		Id:      t.Id,
+		Title:   t.Title,
+		Author:  t.Author,
+		Forum:   t.Forum,
+		Message: t.Message,
+		Votes:   t.Votes,
+		Slug:    t.Slug,
+		Created: t.Created,
 	}
 }

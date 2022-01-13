@@ -30,11 +30,13 @@ func (a *Usecase) UserProfileGet(nickname string) (*models.User, error) {
 	return a.repository.UserProfileGet(nickname)
 }
 
-//func (a *Usecase) UserProfileUpdate(u *models.User) (*models.User, error) {
-func (a *Usecase) UserProfileUpdate(u *models.User) error {
+func (a *Usecase) UserProfileUpdate(u *models.User) (*models.User, error) {
+	if u.About == "" && u.Fullname == "" && u.Email == "" {
+		return a.UserProfileGet(u.Nickname)
+	}
+
 	if u.Nickname == "" {
-		//return nil, models.ModelFieldError
-		return nil
+		return nil, models.ModelFieldError
 	}
 	return a.repository.UserProfileUpdate(u)
 }
