@@ -6,7 +6,6 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/response"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/post"
-	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 	"strconv"
 )
@@ -33,23 +32,23 @@ type PostGetResponse struct {
 }
 
 func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
-	message := logMessage + "PostGet:"
-	logger.Debug(message + "started")
+	//message := logMessage + "PostGet:"
+	//logger.Debug(message + "started")
 	vars := mux.Vars(r)
-	logger.Debug(message + "id = " + vars[id])
+	//logger.Debug(message + "id = " + vars[id])
 	query := r.URL.Query()
-	logger.Debug(message+"related = ", query[related])
+	//logger.Debug(message+"related = ", query[related])
 
 	p, f, t, u, err := h.useCase.PostGet(vars[id], query[related])
 	if err != nil {
 		if err != models.NotFoundError {
-			response.UnknownError(&w, err, message)
+			response.UnknownError(&w)
 			return
 		}
 
-		w.WriteHeader(response.GetStatus(err, message))
+		w.WriteHeader(response.GetStatus(err))
 		e := models.Error{Message: err.Error()}
-		response.SetBody(&w, e, message)
+		response.SetBody(&w, e)
 		return
 	}
 
@@ -66,40 +65,40 @@ func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
 	if u != nil {
 		b.Author = u
 	}
-	response.SetBody(&w, b, message)
+	response.SetBody(&w, b)
 }
 
 func (h *Delivery) PostUpdate(w http.ResponseWriter, r *http.Request) {
-	message := logMessage + "PostUpdate:"
-	logger.Debug(message + "started")
+	//message := logMessage + "PostUpdate:"
+	//logger.Debug(message + "started")
 	vars := mux.Vars(r)
-	logger.Debug(message + "id = " + vars[id])
+	//logger.Debug(message + "id = " + vars[id])
 
 	var p = new(models.Post)
 	err := json.NewDecoder(r.Body).Decode(p)
 	if err != nil {
-		response.UnknownError(&w, err, message)
+		response.UnknownError(&w)
 		return
 	}
 	p.Id, err = strconv.ParseInt(vars[id], 10, 64)
 	if err != nil {
-		response.UnknownError(&w, err, message)
+		response.UnknownError(&w)
 		return
 	}
 
 	p, err = h.useCase.PostUpdate(p)
 	if err != nil {
 		if err != models.NotFoundError {
-			response.UnknownError(&w, err, message)
+			response.UnknownError(&w)
 			return
 		}
 
-		w.WriteHeader(response.GetStatus(err, message))
+		w.WriteHeader(response.GetStatus(err))
 		e := models.Error{Message: err.Error()}
-		response.SetBody(&w, e, message)
+		response.SetBody(&w, e)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response.SetBody(&w, p, message)
+	response.SetBody(&w, p)
 }

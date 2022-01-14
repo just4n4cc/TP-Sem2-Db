@@ -6,7 +6,8 @@ import (
 	"net/http"
 )
 
-func GetStatus(err error, message string) int {
+//func GetStatus(err error, message string) int {
+func GetStatus(err error) int {
 	if err == models.NotFoundError {
 		return http.StatusNotFound
 	}
@@ -16,21 +17,23 @@ func GetStatus(err error, message string) int {
 	return http.StatusBadGateway
 }
 
-func UnknownError(w *http.ResponseWriter, err error, message string) {
-	//logger.Error(message, err)
+func UnknownError(w *http.ResponseWriter) {
+	////logger.Error(message, err)
 	(*w).WriteHeader(http.StatusInternalServerError)
 	return
 }
 
-func SetBody(w *http.ResponseWriter, object interface{}, message string) {
+//func SetBody(w *http.ResponseWriter, object interface{}, message string) {
+func SetBody(w *http.ResponseWriter, object interface{}) {
 	if object == nil {
-		//logger.Success(message)
+		////logger.Success(message)
 		return
 	}
 	body, err := json.Marshal(object)
 	if err != nil {
-		UnknownError(w, err, message)
-		//logger.Error(message, err)
+		UnknownError(w)
+		//UnknownError(w, err, message)
+		////logger.Error(message, err)
 		return
 	}
 	b := string(body)
@@ -45,9 +48,9 @@ func SetBody(w *http.ResponseWriter, object interface{}, message string) {
 	}
 	_, err = (*w).Write(body)
 	if err != nil {
-		UnknownError(w, err, message)
-		//logger.Error(message, err)
+		UnknownError(w)
+		////logger.Error(message, err)
 		return
 	}
-	//logger.Success(message)
+	////logger.Success(message)
 }

@@ -2,15 +2,15 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 CREATE SCHEMA tpdb;
 
-CREATE UNLOGGED TABLE "Service"
-(
-    id SERIAL PRIMARY KEY,
-    forums INT DEFAULT 0,
-    posts INT DEFAULT 0,
-    threads INT DEFAULT 0,
-    users INT DEFAULT 0
-);
-INSERT INTO "Service" DEFAULT VALUES;
+-- CREATE UNLOGGED TABLE "Service"
+-- (
+--     id SERIAL PRIMARY KEY,
+--     forums INT DEFAULT 0,
+--     posts INT DEFAULT 0,
+--     threads INT DEFAULT 0,
+--     users INT DEFAULT 0
+-- );
+-- INSERT INTO "Service" DEFAULT VALUES;
 
 CREATE UNLOGGED TABLE tpdb."User"
 (
@@ -64,6 +64,14 @@ CREATE UNLOGGED TABLE tpdb."Vote"
     "user" CITEXT REFERENCES tpdb."User"(nickname) NOT NULL,
     vote INT NOT NULL,
     UNIQUE (threadid, "user")
+);
+
+CREATE UNLOGGED TABLE tpdb."ForumUsers"
+(
+    id SERIAL PRIMARY KEY,
+    "user" CITEXT REFERENCES tpdb."User"(nickname) NOT NULL,
+    forum CITEXT REFERENCES tpdb."Forum"(slug) NOT NULL,
+    UNIQUE (forum, "user")
 );
 
 --
@@ -129,6 +137,7 @@ CREATE TRIGGER post_insert BEFORE INSERT ON tpdb."Post" FOR EACH ROW EXECUTE PRO
 CREATE FUNCTION post_insert_forum() RETURNS TRIGGER AS $post_insert_forum$
 BEGIN
     UPDATE tpdb."Forum" SET posts = posts + 1 WHERE slug = new.forum;
+    INSERT INTO tpdb."ForumUsers" ("user", forum) VALUES (new.author, new.forum) ON CONFLICT DO NOTHING;
     RETURN new;
 END
 $post_insert_forum$ LANGUAGE plpgsql;
@@ -138,6 +147,7 @@ CREATE TRIGGER post_insert_forum AFTER INSERT ON tpdb."Post" FOR EACH ROW EXECUT
 CREATE FUNCTION thread_insert_forum() RETURNS TRIGGER AS $thread_insert_forum$
 BEGIN
     UPDATE tpdb."Forum" SET threads = threads + 1 WHERE slug = new.forum;
+    INSERT INTO tpdb."ForumUsers" ("user", forum) VALUES (new.author, new.forum) ON CONFLICT DO NOTHING;
     RETURN new;
 END
 $thread_insert_forum$ LANGUAGE plpgsql;
@@ -188,6 +198,16 @@ END
 $post_update$ LANGUAGE plpgsql;
 CREATE TRIGGER post_update BEFORE UPDATE ON tpdb."Post" FOR EACH ROW EXECUTE PROCEDURE post_update();
 
+--
+-- -- POST INSERT FORUM USER
+-- CREATE FUNCTION post_insert_forum_user() RETURNS TRIGGER AS $post_insert_forum_user$
+-- BEGIN
+--     UPDATE tpdb."Forum" SET posts = posts + 1 WHERE slug = new.forum;
+--     RETURN new;
+-- END
+-- $post_insert_forum_user$ LANGUAGE plpgsql;
+-- CREATE TRIGGER post_insert_forum_user AFTER INSERT ON tpdb."Post" FOR EACH ROW EXECUTE PROCEDURE post_insert_forum_user();
+
 CREATE INDEX IF NOT EXISTS idx_nickname_user ON tpdb."User" USING hash(nickname);
 CREATE INDEX IF NOT EXISTS idx_email_user ON tpdb."User" USING hash(email);
 
@@ -195,14 +215,24 @@ CREATE INDEX IF NOT EXISTS idx_slug_forum ON tpdb."Forum" USING hash(slug);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slug_thread ON tpdb."Thread" USING btree(slug) WHERE slug <> '';
 CREATE INDEX IF NOT EXISTS idx_forum_thread ON tpdb."Thread" USING hash(forum);
+-- DROP INDEX tpdb."idx_forum_thread";
+-- CREATE INDEX IF NOT EXISTS idx_forum_thread ON tpdb."Thread" USING btree(forum);
 CREATE INDEX IF NOT EXISTS idx_created_thread ON tpdb."Thread" USING btree(created);
+CREATE INDEX IF NOT EXISTS idx_forum_created_thread ON tpdb."Thread" USING btree(forum, created);
 
 CREATE INDEX IF NOT EXISTS idx_thread_post ON tpdb."Post" USING btree(thread);
+CREATE INDEX IF NOT EXISTS idx_thread_id_post ON tpdb."Post" USING btree(thread, id);
 CREATE INDEX IF NOT EXISTS idx_created_post ON tpdb."Post" USING btree(created);
-CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree((path[1]));
+CREATE INDEX IF NOT EXISTS idx_path1_post ON tpdb."Post" USING btree((path[1]));
+CREATE INDEX IF NOT EXISTS idx_path1id_post ON tpdb."Post" USING btree(id, (path[1]));
+CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree(path);
+-- CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree(path, id);
+-- DROP INDEX tpdb.idx_path_post;
+CREATE INDEX IF NOT EXISTS idx_forum_post ON tpdb."Post" USING hash(forum);
 
 CREATE INDEX IF NOT EXISTS idx_user_vote ON tpdb."Vote" USING btree("user", threadid);
 
+CREATE INDEX IF NOT EXISTS idx_forum_forumusers ON tpdb."ForumUsers" USING hash(forum);
+
 VACUUM;
 VACUUM ANALYZE;
-

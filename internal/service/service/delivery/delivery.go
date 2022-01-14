@@ -3,7 +3,6 @@ package delivery
 import (
 	"github.com/just4n4cc/tp-sem2-db/internal/response"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/service"
-	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 )
 
@@ -20,29 +19,29 @@ func NewDelivery(useCase service.UseCase) *Delivery {
 }
 
 func (h *Delivery) ServiceClear(w http.ResponseWriter, r *http.Request) {
-	message := logMessage + "ServiceClear:"
-	logger.Debug(message + "started")
+	//message := logMessage + "ServiceClear:"
+	//logger.Debug(message + "started")
 
 	err := h.useCase.ServiceClear()
 	if err != nil {
-		response.UnknownError(&w, err, message)
+		response.UnknownError(&w)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response.SetBody(&w, nil, message)
+	response.SetBody(&w, nil)
 }
 
 func (h *Delivery) ServiceStatus(w http.ResponseWriter, r *http.Request) {
-	message := logMessage + "ServiceStatus:"
-	logger.Debug(message + "started")
+	//message := logMessage + "ServiceStatus:"
+	//logger.Debug(message + "started")
 
 	s, err := h.useCase.ServiceStatus()
 	if err != nil {
-		response.UnknownError(&w, err, message)
+		response.UnknownError(&w)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response.SetBody(&w, s, message)
+	response.SetBody(&w, s)
 }

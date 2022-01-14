@@ -5,11 +5,10 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	userRepository "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
-	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 )
 
 const (
-	logMessage         = "service:forum:repository:"
+	//logMessage         = "service:forum:repository:"
 	selectAlreadyExist = `select * from tpdb."Forum"
 		where slug = $1`
 	forumCreate = `insert into tpdb."Forum"
@@ -21,29 +20,21 @@ const (
 						   	union
 							select author from tpdb."Post" where forum = $1
 						  )`
-	forumUsers = `select distinct * from tpdb."User"
+	forumUsers = `select * from tpdb."User"
 		where nickname in (
-						   	select author from tpdb."Thread" where forum = $1
-						   	union
-							select author from tpdb."Post" where forum = $1
+						   	select "user" from tpdb."ForumUsers" where forum = $1
 						  ) order by nickname limit $2`
-	forumUsersDesc = `select distinct * from tpdb."User"
+	forumUsersDesc = `select * from tpdb."User"
 		where nickname in (
-						   	select author from tpdb."Thread" where forum = $1
-						   	union
-							select author from tpdb."Post" where forum = $1
+						   	select "user" from tpdb."ForumUsers" where forum = $1
 						  ) order by nickname desc limit $2`
-	forumUsersSince = `select distinct * from tpdb."User"
+	forumUsersSince = `select * from tpdb."User"
 		where nickname in (
-						   	select author from tpdb."Thread" where forum = $1
-						   	union
-							select author from tpdb."Post" where forum = $1
+						   	select "user" from tpdb."ForumUsers" where forum = $1
 						  ) and nickname > $3 order by nickname limit $2`
-	forumUsersSinceDesc = `select distinct * from tpdb."User"
+	forumUsersSinceDesc = `select * from tpdb."User"
 		where nickname in (
-						   	select author from tpdb."Thread" where forum = $1
-						   	union
-							select author from tpdb."Post" where forum = $1
+						   	select "user" from tpdb."ForumUsers" where forum = $1
 						  ) and nickname < $3 order by nickname desc limit $2`
 )
 
@@ -58,54 +49,54 @@ func NewRepository(database *sql.DB) *Repository {
 }
 
 func (s *Repository) ForumGet(slug string) (*models.Forum, error) {
-	message := logMessage + "ForumGet:"
-	log.Debug(message + "started")
+	//message := logMessage + "ForumGet:"
+	//log.Debug(message + "started")
 	forum := new(Forum)
 	err := s.db.Get(forum, selectAlreadyExist, slug)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return dbToJsonModel(forum), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) ForumCreate(f *models.Forum) (*models.Forum, error) {
-	message := logMessage + "ForumCreate:"
-	log.Debug(message + "started")
+	//message := logMessage + "ForumCreate:"
+	//log.Debug(message + "started")
 	forum := jsonToDbModel(f)
 	query := forumCreate
 	err := s.db.Get(forum, query, forum.Title, forum.User, forum.Slug)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return dbToJsonModel(forum), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	if err == models.NotFoundError {
-		log.Success(message)
+		//log.Success(message)
 		return nil, err
 	}
 	if err != models.AlreadyExistsError {
-		log.Error(message, err)
+		//log.Error(message, err)
 		return nil, err
 	}
 
 	f, err = s.ForumGet(f.Slug)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return f, models.AlreadyExistsError
 	}
 
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.User, error) {
-	message := logMessage + "ForumUsers:"
-	log.Debug(message + "started")
+	//message := logMessage + "ForumUsers:"
+	//log.Debug(message + "started")
 	query := ""
 	var args []interface{}
 	args = append(args, slug)
@@ -131,14 +122,14 @@ func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.
 	var users []userRepository.User
 	err := s.db.Select(&users, query, args...)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return userRepository.DbArrayToJsonModel(users), nil
 	}
 	err = utils.TranslateDbError(err)
 	if err == models.NotFoundError {
-		log.Success(message)
+		//log.Success(message)
 	} else {
-		log.Error(message, err)
+		//log.Error(message, err)
 	}
 	return nil, err
 }

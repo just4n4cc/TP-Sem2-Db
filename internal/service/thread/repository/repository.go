@@ -4,7 +4,6 @@ import (
 	sql "github.com/jmoiron/sqlx"
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
-	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"strconv"
 	"strings"
 )
@@ -63,23 +62,23 @@ func NewRepository(database *sql.DB) *Repository {
 }
 
 func (s *Repository) ThreadBySlug(slug string) (*models.Thread, error) {
-	message := logMessage + "ThreadBySlug:"
-	log.Debug(message + "started")
+	//message := logMessage + "ThreadBySlug:"
+	//log.Debug(message + "started")
 	query := threadBySlug
 	thread := new(Thread)
 	err := s.db.Get(thread, query, slug)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return dbToJsonModel(thread), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) ThreadsByForum(forum string, so *models.SortOptions) ([]*models.Thread, error) {
-	message := logMessage + "ThreadsByForum:"
-	log.Debug(message + "started")
+	//message := logMessage + "ThreadsByForum:"
+	//log.Debug(message + "started")
 	query := ""
 	var args []interface{}
 	args = append(args, forum)
@@ -110,70 +109,70 @@ func (s *Repository) ThreadsByForum(forum string, so *models.SortOptions) ([]*mo
 		for _, t := range *threads {
 			ts = append(ts, dbToJsonModel(&t))
 		}
-		log.Success(message)
+		//log.Success(message)
 		return ts, nil
 	}
 	err = utils.TranslateDbError(err)
 	if err == models.NotFoundError {
-		log.Success(message)
+		//log.Success(message)
 	} else {
-		log.Error(message, err)
+		//log.Error(message, err)
 	}
 	return nil, err
 }
 
 func (s *Repository) ThreadCreate(t *models.Thread) (*models.Thread, error) {
-	message := logMessage + "ThreadCreate:"
-	log.Debug(message + "started")
+	//message := logMessage + "ThreadCreate:"
+	//log.Debug(message + "started")
 	thread := jsonToDbModel(t)
 	query := threadCreate
-	log.Debug(*thread)
+	//log.Debug(*thread)
 
 	err := s.db.Get(thread, query, thread.Title, thread.Author, thread.Forum, thread.Message, thread.Slug, thread.Created)
-	log.Error(message, err)
+	//log.Error(message, err)
 	if err == nil {
 		if t.Slug == "" {
 			thread.Slug = ""
 		}
-		log.Success(message)
+		//log.Success(message)
 		return dbToJsonModel(thread), nil
 	}
 	err = utils.TranslateDbError(err)
 	if err != models.AlreadyExistsError {
 		if err == models.NotFoundError {
-			log.Success(message)
+			//log.Success(message)
 		} else {
-			log.Error(message, err)
+			//log.Error(message, err)
 		}
 		return nil, err
 	}
 
 	t, err = s.ThreadBySlug(thread.Slug)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return t, models.AlreadyExistsError
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 func (s *Repository) ThreadById(id int32) (*models.Thread, error) {
-	message := logMessage + "ThreadById:"
-	log.Debug(message + "started")
+	//message := logMessage + "ThreadById:"
+	//log.Debug(message + "started")
 	query := threadById
 	thread := new(Thread)
 	err := s.db.Get(thread, query, id)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return dbToJsonModel(thread), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 func (s *Repository) ThreadUpdateById(t *models.Thread) (*models.Thread, error) {
-	message := logMessage + "ThreadUpdateById:"
-	log.Debug(message + "started")
+	//message := logMessage + "ThreadUpdateById:"
+	//log.Debug(message + "started")
 	query := threadUpdateById
 	num := 2
 	var args []interface{}
@@ -192,16 +191,16 @@ func (s *Repository) ThreadUpdateById(t *models.Thread) (*models.Thread, error) 
 	thread := jsonToDbModel(t)
 	err := s.db.Get(thread, query, args...)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return dbToJsonModel(thread), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 func (s *Repository) ThreadUpdateBySlug(t *models.Thread) (*models.Thread, error) {
-	message := logMessage + "ThreadUpdateBySlug:"
-	log.Debug(message + "started")
+	//message := logMessage + "ThreadUpdateBySlug:"
+	//log.Debug(message + "started")
 	query := threadUpdateBySlug
 	num := 2
 	var args []interface{}
@@ -220,22 +219,22 @@ func (s *Repository) ThreadUpdateBySlug(t *models.Thread) (*models.Thread, error
 	thread := jsonToDbModel(t)
 	err := s.db.Get(thread, query, args...)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return dbToJsonModel(thread), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 func (s *Repository) ThreadVote(t *models.Thread, v *models.Vote) (*models.Thread, error) {
-	message := logMessage + "ThreadVote:"
-	log.Debug(message + "started")
+	//message := logMessage + "ThreadVote:"
+	//log.Debug(message + "started")
 	query := threadVote
 	rows, err := s.db.Queryx(query, v.Voice, t.Id, v.Nickname)
 	if rows != nil {
 		e := rows.Close()
 		if e != nil {
-			log.Error(message, e)
+			//log.Error(message, e)
 		}
 	}
 	if err == nil { // INSERTED
@@ -245,20 +244,20 @@ func (s *Repository) ThreadVote(t *models.Thread, v *models.Vote) (*models.Threa
 		if rows != nil {
 			e := rows.Close()
 			if e != nil {
-				log.Error(message, e)
+				//log.Error(message, e)
 			}
 		}
 		if err == nil {
-			log.Success(message)
+			//log.Success(message)
 			return t, nil
 		}
 		err = utils.TranslateDbError(err)
-		log.Error(message, err)
+		//log.Error(message, err)
 		return nil, err
 	}
 	err = utils.TranslateDbError(err)
 	if err == models.NotFoundError || err != models.AlreadyExistsError {
-		log.Error(message, err)
+		//log.Error(message, err)
 		return nil, err
 	}
 	query = threadVoteGet
@@ -266,7 +265,7 @@ func (s *Repository) ThreadVote(t *models.Thread, v *models.Vote) (*models.Threa
 	err = s.db.Get(&oldVote, query, t.Id, v.Nickname)
 	if err != nil {
 		err = utils.TranslateDbError(err)
-		log.Error(message, err)
+		//log.Error(message, err)
 		return nil, err
 	}
 
@@ -275,17 +274,17 @@ func (s *Repository) ThreadVote(t *models.Thread, v *models.Vote) (*models.Threa
 	if rows != nil {
 		e := rows.Close()
 		if e != nil {
-			log.Error(message, e)
+			//log.Error(message, e)
 		}
 	}
 	if err != nil {
 		err = utils.TranslateDbError(err)
-		log.Error(message, err)
+		//log.Error(message, err)
 		return nil, err
 	}
 
 	if oldVote == v.Voice {
-		log.Success(message)
+		//log.Success(message)
 		return t, nil
 	}
 	t.Votes += v.Voice * 2
@@ -294,15 +293,15 @@ func (s *Repository) ThreadVote(t *models.Thread, v *models.Vote) (*models.Threa
 	if rows != nil {
 		e := rows.Close()
 		if e != nil {
-			log.Error(message, e)
+			//log.Error(message, e)
 		}
 	}
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return t, nil
 	}
 
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }

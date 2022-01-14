@@ -19,7 +19,6 @@ import (
 	repositoryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
 	usecaseUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/usecase"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
-	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 )
 
@@ -38,7 +37,7 @@ func NewApp() (*App, error) {
 	const message = logMessage + "NewApp"
 	db, err := utils.InitDb()
 	if err != nil {
-		logger.Error(message, err)
+		//logger.Error(message, err)
 		return nil, err
 	}
 
@@ -72,7 +71,7 @@ func contentTypeMiddleware(next http.Handler) http.Handler {
 
 func urlPrintMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Info("URL: " + r.URL.String())
+		//logger.Info("URL: " + r.URL.String())
 		next.ServeHTTP(w, r)
 	})
 }
@@ -113,8 +112,8 @@ func (app *App) Run() error {
 		defer app.db.Close()
 	}
 
-	message := logMessage + "Run:"
-	logger.Info(message + "start")
+	//message := logMessage + "Run:"
+	//logger.Info(message + "start")
 
 	port := ":5000"
 	r := newRouter(app)
@@ -126,7 +125,7 @@ func (app *App) Run() error {
 	}
 	err := s.ListenAndServe()
 	if err != nil {
-		logger.Error(message, err)
+		//logger.Error(message, err)
 		return err
 	}
 	return nil

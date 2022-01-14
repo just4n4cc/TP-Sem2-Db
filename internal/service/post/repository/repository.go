@@ -4,7 +4,6 @@ import (
 	sql "github.com/jmoiron/sqlx"
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
-	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"strconv"
 	"strings"
 )
@@ -79,37 +78,37 @@ func NewRepository(database *sql.DB) *Repository {
 }
 
 func (s *Repository) PostGet(id int64) (*models.Post, error) {
-	message := logMessage + "PostGet:"
-	log.Debug(message + "started")
+	//message := logMessage + "PostGet:"
+	//log.Debug(message + "started")
 	query := postGet
 	post := new(Post)
 	err := s.db.Get(post, query, id)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return DbToJsonModel(post), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 func (s *Repository) PostUpdate(p *models.Post) (*models.Post, error) {
-	message := logMessage + "PostUpdate:"
-	log.Debug(message + "started")
+	//message := logMessage + "PostUpdate:"
+	//log.Debug(message + "started")
 	query := postUpdate
 	post := new(Post)
 	err := s.db.Get(post, query, p.Id, p.Message)
 	if err == nil {
-		log.Success(message)
+		//log.Success(message)
 		return DbToJsonModel(post), nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) PostsCreate(ps []*models.Post) ([]*models.Post, error) {
-	message := logMessage + "PostsCreate:"
-	log.Debug(message + "started")
+	//message := logMessage + "PostsCreate:"
+	//log.Debug(message + "started")
 	query := postsCreate
 	var args []interface{}
 	num := 1
@@ -135,17 +134,17 @@ func (s *Repository) PostsCreate(ps []*models.Post) ([]*models.Post, error) {
 		for i, p := range posts {
 			ps[i] = DbToJsonModel(&p)
 		}
-		log.Success(message)
+		//log.Success(message)
 		return ps, nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) PostsByThread(id int32, so *models.SortOptions) ([]*models.Post, error) {
-	message := logMessage + "PostsByThread:"
-	log.Debug(message + "started")
+	//message := logMessage + "PostsByThread:"
+	//log.Debug(message + "started")
 	query := ""
 	var args []interface{}
 	args = append(args, id)
@@ -208,10 +207,10 @@ func (s *Repository) PostsByThread(id int32, so *models.SortOptions) ([]*models.
 		for _, p := range posts {
 			ps = append(ps, DbToJsonModel(&p))
 		}
-		log.Success(message)
+		//log.Success(message)
 		return ps, nil
 	}
 	err = utils.TranslateDbError(err)
-	log.Error(message, err)
+	//log.Error(message, err)
 	return nil, err
 }
