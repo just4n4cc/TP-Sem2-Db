@@ -19,7 +19,9 @@ import (
 	repositoryUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/repository"
 	usecaseUser "github.com/just4n4cc/tp-sem2-db/internal/service/user/usecase"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
+	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
+	"strings"
 )
 
 const logMessage = "app:"
@@ -71,7 +73,10 @@ func contentTypeMiddleware(next http.Handler) http.Handler {
 
 func urlPrintMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//logger.Info("URL: " + r.URL.String())
+		url := r.URL.String()
+		if strings.Contains(url, "service") {
+			logger.Info("URL: " + url)
+		}
 		next.ServeHTTP(w, r)
 	})
 }
@@ -79,7 +84,7 @@ func urlPrintMiddleware(next http.Handler) http.Handler {
 func newRouter(app *App) *mux.Router {
 	r := mux.NewRouter()
 	r.Use(contentTypeMiddleware)
-	r.Use(urlPrintMiddleware)
+	//r.Use(urlPrintMiddleware)
 	rApi := r.PathPrefix("/api").Subrouter()
 
 	rApi.HandleFunc("/forum/create", app.deliveryForum.ForumCreate).Methods("POST")

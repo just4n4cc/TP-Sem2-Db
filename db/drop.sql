@@ -7,7 +7,6 @@ DROP TABLE IF EXISTS tpdb."Thread" CASCADE;
 DROP TABLE IF EXISTS tpdb."Post" CASCADE ;
 DROP TABLE IF EXISTS tpdb."Vote" CASCADE ;
 DROP TABLE IF EXISTS tpdb."ForumUsers" CASCADE ;
--- DROP TABLE IF EXISTS "Service" CASCADE ;
 
 DROP TRIGGER IF EXISTS user_inc ON tpdb."User";
 DROP TRIGGER IF EXISTS thread_inc ON tpdb."Thread";
@@ -31,4 +30,26 @@ DROP FUNCTION IF EXISTS post_insert_forum() CASCADE;
 DROP FUNCTION IF EXISTS thread_insert_forum() CASCADE;
 DROP FUNCTION IF EXISTS post_update() CASCADE;
 -- --------------------------------
+
+DROP INDEX IF EXISTS tpdb.idx_nickname_user;
+DROP INDEX IF EXISTS tpdb.idx_email_user;
+
+DROP INDEX IF EXISTS tpdb.idx_slug_forum;
+
+DROP INDEX IF EXISTS tpdb.idx_slug_thread;
+DROP INDEX IF EXISTS tpdb.idx_forum_thread;
+DROP INDEX IF EXISTS tpdb.idx_forum_thread;
+DROP INDEX IF EXISTS tpdb.idx_created_thread;
+
+DROP INDEX IF EXISTS tpdb.idx_thread_post;
+DROP INDEX IF EXISTS tpdb.idx_thread_id_post;
+DROP INDEX IF EXISTS tpdb.idx_created_post;
+DROP INDEX IF EXISTS tpdb.idx_path_post;
+DROP INDEX IF EXISTS tpdb.idx_path1_post;
+DROP INDEX IF EXISTS tpdb.idx_id_path1_post;
+DROP INDEX IF EXISTS tpdb.idx_forum_post;
+
+DROP INDEX IF EXISTS tpdb.idx_user_threadid_vote;
+
+DROP INDEX IF EXISTS tpdb.idx_forum_forumusers;
 

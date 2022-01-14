@@ -69,7 +69,7 @@ CREATE UNLOGGED TABLE tpdb."Vote"
 CREATE UNLOGGED TABLE tpdb."ForumUsers"
 (
     id SERIAL PRIMARY KEY,
-    "user" CITEXT REFERENCES tpdb."User"(nickname) NOT NULL,
+    "user" CITEXT COLLATE "C" REFERENCES tpdb."User"(nickname) NOT NULL,
     forum CITEXT REFERENCES tpdb."Forum"(slug) NOT NULL,
     UNIQUE (forum, "user")
 );
@@ -224,15 +224,61 @@ CREATE INDEX IF NOT EXISTS idx_thread_post ON tpdb."Post" USING btree(thread);
 CREATE INDEX IF NOT EXISTS idx_thread_id_post ON tpdb."Post" USING btree(thread, id);
 CREATE INDEX IF NOT EXISTS idx_created_post ON tpdb."Post" USING btree(created);
 CREATE INDEX IF NOT EXISTS idx_path1_post ON tpdb."Post" USING btree((path[1]));
-CREATE INDEX IF NOT EXISTS idx_path1id_post ON tpdb."Post" USING btree(id, (path[1]));
+CREATE INDEX IF NOT EXISTS idx_id_path1_post ON tpdb."Post" USING btree(id, (path[1]));
 CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree(path);
+CREATE INDEX IF NOT EXISTS idx_parent_post ON tpdb."Post" USING btree(parent);
+CREATE INDEX IF NOT EXISTS idx_forum_post ON tpdb."Post" USING hash(forum);
 -- CREATE INDEX IF NOT EXISTS idx_path_post ON tpdb."Post" USING btree(path, id);
 -- DROP INDEX tpdb.idx_path_post;
-CREATE INDEX IF NOT EXISTS idx_forum_post ON tpdb."Post" USING hash(forum);
 
-CREATE INDEX IF NOT EXISTS idx_user_vote ON tpdb."Vote" USING btree("user", threadid);
+CREATE INDEX IF NOT EXISTS idx_user_threadid_vote ON tpdb."Vote" USING btree("user", threadid);
 
 CREATE INDEX IF NOT EXISTS idx_forum_forumusers ON tpdb."ForumUsers" USING hash(forum);
+CREATE INDEX IF NOT EXISTS idx_forum_forumusers ON tpdb."ForumUsers" USING hash("user");
+CREATE INDEX IF NOT EXISTS idx_forum_user_forumusers ON tpdb."ForumUsers" USING btree(forum, "user");
 
 VACUUM;
 VACUUM ANALYZE;
+
+-- select * from tpdb."User";
+-- select * from tpdb."Thread";
+-- select * from tpdb."Forum";
+-- select * from tpdb."ForumUsers";
+-- select * from tpdb."Vote";
+-- select * from tpdb."User" where nickname = 'ex.cy52WxIeuspTRV' or email = 'en.cbC4Wt5odSJSP@meiac.org';
+-- select * from tpdb."User" where nickname = 'ex.cy52WxIeuspTRV';
+-- select * from tpdb."Thread" where slug = 'c36S1YjgE9K9Rv';
+-- select * from tpdb."Thread"
+-- where forum = '_6Os1Y5Zxyrw8' order by created limit 100;
+--
+-- select * from tpdb."Thread"
+-- where forum = '6a6sbWCzvyk9r' order by created desc limit 100;
+--
+-- select vote from tpdb."Vote"
+-- where "user" = 'rei.8pZJYscqvtpTPT' and threadid = 8443;
+--
+-- select * from tpdb."User"
+-- where nickname in (
+--     select "user" from tpdb."ForumUsers" where forum = '12-S_YCGXYR9s'
+-- ) order by nickname desc limit 100;
+--
+-- select * from tpdb."User"
+-- where nickname in (
+--     select "user" from tpdb."ForumUsers" where forum = 'Qo6r_y5Z2ur9S' and "user" > 'his.eHvj0xFOUsP87k'
+--     order by "user" limit 100
+-- );
+-- select * from tpdb."User"
+-- where nickname in (
+--     select "user" from tpdb."ForumUsers" where forum = 'Qo6r_y5Z2ur9S' and "user" > 'his.eHvj0xFOUsP87k'
+--     order by "user" limit 100
+-- ) order by nickname;
+--
+-- select u.id, u.nickname, u.fullname, u.about, u.email from tpdb."User" as u
+--     JOIN tpdb."ForumUsers" as fu ON u.nickname = fu."user"
+--     where fu.forum = 'Qo6r_y5Z2ur9S' and fu."user" > 'his.eHvj0xFOUsP87k'
+--     order by "user" limit 100;
+--
+-- select * from tpdb."User"
+-- where nickname in (
+--     select "user" from tpdb."ForumUsers" where forum = 'Qo6r_y5Z2ur9S'
+-- ) and nickname > 'his.eHvj0xFOUsP87k' order by nickname limit 100;
