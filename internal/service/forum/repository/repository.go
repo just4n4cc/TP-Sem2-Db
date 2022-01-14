@@ -10,55 +10,55 @@ import (
 
 const (
 	logMessage         = "service:forum:repository:"
-	selectAlreadyExist = `select * from tpdb."Forum"
+	selectAlreadyExist = `select * from Forum
 		where slug = $1`
-	forumCreate = `insert into tpdb."Forum"
+	forumCreate = `insert into Forum
 		(title, "user", slug)
 		values($1, $2, $3) returning *`
-	//forumUsersNil = `select distinct * from tpdb."User"
+	//forumUsersNil = `select distinct * from User
 	//	where nickname in (
-	//					   	select author from tpdb."Thread" where forum = $1
+	//					   	select author from Thread where forum = $1
 	//					   	union
-	//						select author from tpdb."Post" where forum = $1
+	//						select author from Post where forum = $1
 	//					  )`
-	forumUsersNil = `select * from tpdb."User"
+	forumUsersNil = `select * from User
 		where nickname in (
-							select "user" from tpdb."ForumUsers" where forum = $1
+							select "user" from ForumUsers where forum = $1
 						  )`
-	//forumUsers = `select * from tpdb."User"
+	//forumUsers = `select * from User
 	//	where nickname in (
-	//					   	select "user" from tpdb."ForumUsers" where forum = $1
+	//					   	select "user" from ForumUsers where forum = $1
 	//					  ) order by nickname limit $2`
 	forumUsers = `select u.id, u.nickname, u.fullname, u.about, u.email 
-		from tpdb."User" as u
-		inner join tpdb."ForumUsers" as fu 
+		from "User"as u
+		inner join ForumUsers as fu 
 		on u.nickname = fu."user"
 		where fu.forum = $1
 		order by "user" limit $2`
-	//forumUsersDesc = `select * from tpdb."User"
+	//forumUsersDesc = `select * from User
 	//	where nickname in (
-	//					   	select "user" from tpdb."ForumUsers" where forum = $1
+	//					   	select "user" from ForumUsers where forum = $1
 	//					  ) order by nickname desc limit $2`
 	forumUsersDesc = `select u.id, u.nickname, u.fullname, u.about, u.email 
-		from tpdb."User" as u
-		inner join tpdb."ForumUsers" as fu 
+		from "User"as u
+		inner join ForumUsers as fu 
 		on u.nickname = fu."user"
 		where fu.forum = $1
 		order by "user" desc limit $2`
 	forumUsersSince = `select u.id, u.nickname, u.fullname, u.about, u.email 
-		from tpdb."User" as u
-		inner join tpdb."ForumUsers" as fu 
+		from "User"as u
+		inner join ForumUsers as fu 
 		on u.nickname = fu."user"
 		where fu.forum = $1 and fu."user" > $3
 		order by "user" limit $2`
 	//) and nickname > $3 order by nickname limit $2`
-	//forumUsersSinceDesc = `select * from tpdb."User"
+	//forumUsersSinceDesc = `select * from User
 	//	where nickname in (
-	//					   	select "user" from tpdb."ForumUsers" where forum = $1
+	//					   	select "user" from ForumUsers where forum = $1
 	//					  ) and nickname < $3 order by nickname desc limit $2`
 	forumUsersSinceDesc = `select u.id, u.nickname, u.fullname, u.about, u.email 
-		from tpdb."User" as u
-		inner join tpdb."ForumUsers" as fu 
+		from "User"as u
+		inner join ForumUsers as fu 
 		on u.nickname = fu."user"
 		where fu.forum = $1 and fu."user" < $3
 		order by "user" desc limit $2`

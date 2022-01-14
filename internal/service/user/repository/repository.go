@@ -10,14 +10,14 @@ import (
 
 const (
 	logMessage            = "service:user:repository:"
-	selectAlreadyExisting = `select * from tpdb."User"
+	selectAlreadyExisting = `select * from "User"
 		where nickname = $1 or email = $2`
-	userCreate = `insert into tpdb."User"
+	userCreate = `insert into "User"
 		(nickname, fullname, about, email)
 		values($1, $2, $3, $4)`
-	userProfileGet = `select * from tpdb."User"
+	userProfileGet = `select * from "User"
 		where nickname = $1`
-	userProfileUpdateBegin = `update tpdb."User" set `
+	userProfileUpdateBegin = `update "User" set `
 	userProfileUpdateEnd   = `where nickname = $1
 		returning *`
 )

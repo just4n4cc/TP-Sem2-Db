@@ -10,43 +10,43 @@ import (
 
 const (
 	logMessage   = "service:thread:repository:"
-	threadBySlug = `select * from tpdb."Thread"
+	threadBySlug = `select * from Thread
 		where slug = $1`
-	threadById = `select * from tpdb."Thread"
+	threadById = `select * from Thread
 		where id = $1`
-	threadCreate = `insert into tpdb."Thread"
+	threadCreate = `insert into Thread
 		(title, author, forum, message, slug, created)
 		values($1, $2, $3, $4, $5, $6)
 		returning *`
-	threadsByForumNil = `select * from tpdb."Thread"
+	threadsByForumNil = `select * from Thread
 		where forum = $1`
-	threadsByForum = `select * from tpdb."Thread"
+	threadsByForum = `select * from Thread
 		where forum = $1 order by created limit $2`
-	threadsByForumDesc = `select * from tpdb."Thread"
+	threadsByForumDesc = `select * from Thread
 		where forum = $1 order by created desc limit $2`
-	threadsByForumSince = `select * from tpdb."Thread"
+	threadsByForumSince = `select * from Thread
 		where forum = $1 and created >= $3 order by created limit $2`
-	threadsByForumSinceDesc = `select * from tpdb."Thread"
+	threadsByForumSinceDesc = `select * from Thread
 		where forum = $1 and created <= $3 order by created desc limit $2`
-	threadUpdateById = `update tpdb."Thread"
+	threadUpdateById = `update Thread
 		set `
 	threadUpdateByIdEnd = ` where id = $1
 		returning *`
-	threadUpdateBySlug = `update tpdb."Thread"
+	threadUpdateBySlug = `update Thread
 		set `
 	threadUpdateBySlugEnd = ` where slug = $1
 		returning *`
-	threadVote = `insert into tpdb."Vote"
+	threadVote = `insert into Vote
 		(vote, threadid, "user")
 		values ($1, $2, $3)`
-	threadUpdateVote = `update tpdb."Thread"
+	threadUpdateVote = `update Thread
 		set votes = $2
 		where id = $1`
 	threadVoteGet = `
-	select vote from tpdb."Vote" 
+	select vote from Vote 
 	where "user" = $2 and threadid = $1;`
 	threadVoteUpdate = `
-	update tpdb."Vote"
+	update Vote
 		set vote = $3
 		where "user" = $2 and threadid = $1`
 )

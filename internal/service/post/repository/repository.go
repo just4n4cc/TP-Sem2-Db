@@ -4,64 +4,65 @@ import (
 	sql "github.com/jmoiron/sqlx"
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
+	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"strconv"
 	"strings"
 )
 
 const (
 	logMessage = "service:post:repository:"
-	postGet    = `select * from tpdb."Post"
+	postGet    = `select * from Post
 		where id = $1`
-	postsCreate = `insert into tpdb."Post"
+	postsCreate = `insert into Post
 		(parent, author, message, forum, thread, created)
 		values`
 
-	postsByThreadNil = `select * from tpdb."Post"
+	postsByThreadNil = `select * from Post
 		where thread = $1`
-	postsByThreadFlat = `select * from tpdb."Post"
+	postsByThreadFlat = `select * from Post
 		where thread = $1 order by created, id limit $2`
-	postsByThreadFlatDesc = `select * from tpdb."Post"
+	postsByThreadFlatDesc = `select * from Post
 		where thread = $1 order by created desc, id desc limit $2`
-	postsByThreadFlatSince = `select * from tpdb."Post"
+	postsByThreadFlatSince = `select * from Post
 		where thread = $1 and id > $3 order by created, id limit $2`
-	postsByThreadFlatSinceDesc = `select * from tpdb."Post"
+	postsByThreadFlatSinceDesc = `select * from Post
 		where thread = $1 and id < $3 order by created desc, id desc limit $2`
 
-	postsByThreadTree = `select * from tpdb."Post"
+	postsByThreadTree = `select * from Post
 		where thread = $1 order by path, id limit $2`
-	postsByThreadTreeDesc = `select * from tpdb."Post"
+	postsByThreadTreeDesc = `select * from Post
 		where thread = $1 order by path desc, id desc limit $2`
-	postsByThreadTreeSince = `select * from tpdb."Post"
-		where thread = $1 and path > (select path from tpdb."Post" where id = $3) order by path, id limit $2`
-	postsByThreadTreeSinceDesc = `select * from tpdb."Post"
-		where thread = $1 and path < (select path from tpdb."Post" where id = $3) order by path desc, id desc limit $2`
+	postsByThreadTreeSince = `select * from Post
+		where thread = $1 and path > (select path from Post where id = $3) order by path, id limit $2`
+	postsByThreadTreeSinceDesc = `select * from Post
+		where thread = $1 and path < (select path from Post where id = $3) order by path desc, id desc limit $2`
 
-	postsByThreadPTree = `select * from tpdb."Post"
-		where path[1] in (select id from tpdb."Post" 
+	postsByThreadPTree = `select * from Post
+		where path[1] in (select id from Post 
 							where thread = $1 and parent = 0 
 							order by id limit $2)
 		order by path, id`
-	postsByThreadPTreeDesc = `select * from tpdb."Post"
-		where path[1] in (select id from tpdb."Post" 
+	postsByThreadPTreeDesc = `select * from Post
+		where path[1] in (select id from Post 
 							where thread = $1 and parent = 0 
 							order by id desc limit $2)
 		order by path[1] desc, path, id`
-	postsByThreadPTreeSince = `select * from tpdb."Post"
-		where path[1] in (select id from tpdb."Post" 
-							where thread = $1 and parent = 0 and path[1] > ( select path[1] from tpdb."Post"
+	postsByThreadPTreeSince = `select * from Post
+		where path[1] in (select id from Post 
+							where thread = $1 and parent = 0 and path[1] > ( select path[1] from Post
 																				where id = $3
 																			)
 							order by id limit $2)
 		order by path, id`
-	postsByThreadPTreeSinceDesc = `select * from tpdb."Post"
-		where path[1] in (select id from tpdb."Post" 
-							where thread = $1 and parent = 0 and path[1] < ( select path[1] from tpdb."Post"
+	postsByThreadPTreeSinceDesc = `select * from Post
+		where path[1] in (select id from Post 
+							where thread = $1 and parent = 0 and path[1] < ( select path[1] from Post
 																				where id = $3
 																			)
 							order by id desc limit $2)
 		order by path[1] desc, path, id`
 
-	postUpdate = `update tpdb."Post"
+	postUpdate = `update Post
 		set message = $2
 		where id = $1
 		returning *`
@@ -107,8 +108,8 @@ func (s *Repository) PostUpdate(p *models.Post) (*models.Post, error) {
 }
 
 func (s *Repository) PostsCreate(ps []*models.Post) ([]*models.Post, error) {
-	//message := logMessage + "PostsCreate:"
-	//log.Debug(message + "started")
+	message := logMessage + "PostsCreate:"
+	log.Debug(message + "started")
 	query := postsCreate
 	var args []interface{}
 	num := 1
@@ -130,15 +131,16 @@ func (s *Repository) PostsCreate(ps []*models.Post) ([]*models.Post, error) {
 	query = query + " returning *"
 	var posts []Post
 	err := s.db.Select(&posts, query, args...)
+	log.Error(message, err)
 	if err == nil {
 		for i, p := range posts {
 			ps[i] = DbToJsonModel(&p)
 		}
-		//log.Success(message)
+		log.Success(message)
 		return ps, nil
 	}
 	err = utils.TranslateDbError(err)
-	//log.Error(message, err)
+	log.Error(message, err)
 	return nil, err
 }
 

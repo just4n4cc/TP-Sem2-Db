@@ -9,12 +9,12 @@ import (
 const (
 	logMessage = "service:service:repository:"
 	//statusGet    = `select * from "Service" where id = 1`
-	statusUser   = `select count(*) from tpdb."User";`
-	statusPost   = `select count(*) from tpdb."Post";`
-	statusForum  = `select count(*) from tpdb."Forum";`
-	statusThread = `select count(*) from tpdb."Thread";`
-	serviceClear = `truncate tpdb."User",  tpdb."Post", tpdb."Thread", 
-		tpdb."Forum", tpdb."Vote", tpdb."ForumUsers" cascade;`
+	statusUser   = `select count(*) from "User";`
+	statusPost   = `select count(*) from Post;`
+	statusForum  = `select count(*) from Forum;`
+	statusThread = `select count(*) from Thread;`
+	serviceClear = `truncate "User",  Post, Thread, 
+		Forum, Vote, ForumUsers cascade;`
 	//update "Service" set users = 0, posts = 0, threads = 0, forums = 0 where id = 1`
 )
 
