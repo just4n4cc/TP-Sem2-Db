@@ -15,30 +15,17 @@ const (
 	forumCreate = `insert into Forum
 		(title, "user", slug)
 		values($1, $2, $3) returning *`
-	//forumUsersNil = `select distinct * from User
-	//	where nickname in (
-	//					   	select author from Thread where forum = $1
-	//					   	union
-	//						select author from Post where forum = $1
-	//					  )`
-	forumUsersNil = `select * from User
-		where nickname in (
-							select "user" from ForumUsers where forum = $1
-						  )`
-	//forumUsers = `select * from User
-	//	where nickname in (
-	//					   	select "user" from ForumUsers where forum = $1
-	//					  ) order by nickname limit $2`
+	forumUsersNil = `select u.id, u.nickname, u.fullname, u.about, u.email 
+		from "User"as u
+		inner join ForumUsers as fu 
+		on u.nickname = fu."user"
+		where fu.forum = $1`
 	forumUsers = `select u.id, u.nickname, u.fullname, u.about, u.email 
 		from "User"as u
 		inner join ForumUsers as fu 
 		on u.nickname = fu."user"
 		where fu.forum = $1
 		order by "user" limit $2`
-	//forumUsersDesc = `select * from User
-	//	where nickname in (
-	//					   	select "user" from ForumUsers where forum = $1
-	//					  ) order by nickname desc limit $2`
 	forumUsersDesc = `select u.id, u.nickname, u.fullname, u.about, u.email 
 		from "User"as u
 		inner join ForumUsers as fu 
@@ -51,11 +38,6 @@ const (
 		on u.nickname = fu."user"
 		where fu.forum = $1 and fu."user" > $3
 		order by "user" limit $2`
-	//) and nickname > $3 order by nickname limit $2`
-	//forumUsersSinceDesc = `select * from User
-	//	where nickname in (
-	//					   	select "user" from ForumUsers where forum = $1
-	//					  ) and nickname < $3 order by nickname desc limit $2`
 	forumUsersSinceDesc = `select u.id, u.nickname, u.fullname, u.about, u.email 
 		from "User"as u
 		inner join ForumUsers as fu 
@@ -75,48 +57,48 @@ func NewRepository(database *sql.DB) *Repository {
 }
 
 func (s *Repository) ForumGet(slug string) (*models.Forum, error) {
-	//message := logMessage + "ForumGet:"
-	//log.Debug(message + "started")
+	message := logMessage + "ForumGet:"
+	log.Debug(message + "started")
 	forum := new(Forum)
 	err := s.db.Get(forum, selectAlreadyExist, slug)
 	if err == nil {
-		//log.Success(message)
+		log.Success(message)
 		return dbToJsonModel(forum), nil
 	}
 	err = utils.TranslateDbError(err)
-	//log.Error(message, err)
+	log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) ForumCreate(f *models.Forum) (*models.Forum, error) {
-	//message := logMessage + "ForumCreate:"
-	//log.Debug(message + "started")
+	message := logMessage + "ForumCreate:"
+	log.Debug(message + "started")
 	forum := jsonToDbModel(f)
 	query := forumCreate
 	err := s.db.Get(forum, query, forum.Title, forum.User, forum.Slug)
 	if err == nil {
-		//log.Success(message)
+		log.Success(message)
 		return dbToJsonModel(forum), nil
 	}
 	err = utils.TranslateDbError(err)
-	//log.Error(message, err)
+	log.Error(message, err)
 	if err == models.NotFoundError {
-		//log.Success(message)
+		log.Success(message)
 		return nil, err
 	}
 	if err != models.AlreadyExistsError {
-		//log.Error(message, err)
+		log.Error(message, err)
 		return nil, err
 	}
 
 	f, err = s.ForumGet(f.Slug)
 	if err == nil {
-		//log.Success(message)
+		log.Success(message)
 		return f, models.AlreadyExistsError
 	}
 
 	err = utils.TranslateDbError(err)
-	//log.Error(message, err)
+	log.Error(message, err)
 	return nil, err
 }
 
@@ -128,7 +110,6 @@ func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.
 	args = append(args, slug)
 	if so == nil {
 		query = forumUsersNil
-		//logger.Debug("NIL")
 	} else {
 		args = append(args, so.Limit)
 		if so.Since == "" {
@@ -149,14 +130,10 @@ func (s *Repository) ForumUsers(slug string, so *models.SortOptions) ([]*models.
 	var users []userRepository.User
 	err := s.db.Select(&users, query, args...)
 	if err == nil {
-		//log.Success(message)
+		log.Success(message)
 		return userRepository.DbArrayToJsonModel(users), nil
 	}
 	err = utils.TranslateDbError(err)
-	if err == models.NotFoundError {
-		log.Success(message)
-	} else {
-		log.Error(message, err)
-	}
+	log.Error(message, err)
 	return nil, err
 }

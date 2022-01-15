@@ -7,6 +7,7 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/response"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/forum"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
+	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 )
 
@@ -24,8 +25,8 @@ func NewDelivery(useCase forum.UseCase) *Delivery {
 }
 
 func (h *Delivery) ForumCreate(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ForumCreate:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ForumCreate:"
+	log.Debug(message + "started")
 
 	var f = new(models.Forum)
 	err := json.NewDecoder(r.Body).Decode(f)
@@ -56,10 +57,10 @@ func (h *Delivery) ForumCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ForumGet(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ForumGet:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ForumGet:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug = " + vars[slug])
+	log.Debug(message + "slug = " + vars[slug])
 
 	f, err := h.useCase.ForumGet(vars[slug])
 	if err != nil {
@@ -79,10 +80,10 @@ func (h *Delivery) ForumGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ForumThreadCreate(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ForumThreadCreate:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ForumThreadCreate:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug = " + vars[slug])
+	log.Debug(message + "slug = " + vars[slug])
 
 	var t = new(models.Thread)
 	err := json.NewDecoder(r.Body).Decode(t)
@@ -115,15 +116,15 @@ func (h *Delivery) ForumThreadCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ForumUsers(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ForumUsers:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ForumUsers:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug = " + vars[slug])
+	log.Debug(message + "slug = " + vars[slug])
 	so, err := utils.GetSortOptionsFromRequest(r)
 	if err != nil {
 		response.UnknownError(&w)
 	}
-	//logger.Debug(message+"sort options = ", so)
+	log.Debug(message+"sort options = ", so)
 
 	users, err := h.useCase.ForumUsers(vars[slug], so)
 	if err != nil {
@@ -143,15 +144,15 @@ func (h *Delivery) ForumUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ForumThreads(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ForumThreads:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ForumThreads:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug = " + vars[slug])
+	log.Debug(message + "slug = " + vars[slug])
 	so, err := utils.GetSortOptionsFromRequest(r)
 	if err != nil {
 		response.UnknownError(&w)
 	}
-	//logger.Debug(message+"sort options = ", so)
+	log.Debug(message+"sort options = ", so)
 
 	threads, err := h.useCase.ForumThreads(vars[slug], so)
 	if err != nil {

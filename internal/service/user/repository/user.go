@@ -29,14 +29,6 @@ func DbToJsonModel(u *User) *models.User {
 	}
 }
 
-//func JsonToDbModelArray(us []*models.User) []*User {
-//	var users []*User
-//	for _, u := range us {
-//		users = append(users, JsonToDbModel(u))
-//	}
-//	return users
-//}
-
 func DbArrayToJsonModel(us []User) []*models.User {
 	var users []*models.User
 	for _, u := range us {

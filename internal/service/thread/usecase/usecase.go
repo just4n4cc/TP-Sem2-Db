@@ -85,9 +85,6 @@ func (a *Usecase) ThreadUpdate(slugOrId string, thread *models.Thread) (*models.
 	if slugOrId == "" {
 		return nil, models.ModelFieldError
 	}
-	//if slugOrId == "" || thread.Message == "" || thread.Title == "" {
-	//	return nil, models.ModelFieldError
-	//}
 	id, err := strconv.ParseInt(slugOrId, 10, 32)
 	if err == nil {
 		thread.Id = int32(id)

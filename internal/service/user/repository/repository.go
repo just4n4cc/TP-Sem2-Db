@@ -4,6 +4,7 @@ import (
 	sql "github.com/jmoiron/sqlx"
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
+	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"strconv"
 	"strings"
 )
@@ -33,57 +34,57 @@ func NewRepository(database *sql.DB) *Repository {
 }
 
 func (s *Repository) UserCreate(u *models.User) ([]*models.User, error) {
-	//message := logMessage + "UserCreate:"
-	//log.Debug(message + "started")
+	message := logMessage + "UserCreate:"
+	log.Debug(message + "started")
 	user := JsonToDbModel(u)
 	query := userCreate
 	rows, err := s.db.Queryx(query, user.Nickname, user.Fullname, user.About, user.Email)
 	if rows != nil {
 		e := rows.Close()
 		if e != nil {
-			//log.Error(message, e)
+			log.Error(message, e)
 		}
 	}
 	if err == nil {
-		//log.Success(message)
+		log.Success(message)
 		return nil, nil
 	}
 	err = utils.TranslateDbError(err)
 	if err != models.AlreadyExistsError {
-		//log.Error(message, err)
+		log.Error(message, err)
 		return nil, err
 	}
 
 	var users []User
 	err = s.db.Select(&users, selectAlreadyExisting, user.Nickname, user.Email)
 	if err != nil {
-		//log.Error(message, err)
+		log.Error(message, err)
 		return nil, err
 	}
-	//log.Success(message)
+	log.Success(message)
 	return DbArrayToJsonModel(users), models.AlreadyExistsError
 }
 
 func (s *Repository) UserProfileGet(nickname string) (*models.User, error) {
-	//message := logMessage + "UserProfileGet:"
-	//log.Debug(message + "started")
+	message := logMessage + "UserProfileGet:"
+	log.Debug(message + "started")
 	query := userProfileGet
 	user := new(User)
 	err := s.db.Get(user, query, nickname)
 	if err == nil {
-		//log.Success(message)
+		log.Success(message)
 		return DbToJsonModel(user), nil
 	}
 	err = utils.TranslateDbError(err)
+	log.Error(message, err)
 	return nil, err
 }
 
 func (s *Repository) UserProfileUpdate(u *models.User) (*models.User, error) {
-	//message := logMessage + "UserProfileUpdate:"
-	//log.Debug(message + "started")
+	message := logMessage + "UserProfileUpdate:"
+	log.Debug(message + "started")
 	user := JsonToDbModel(u)
 	query := userProfileUpdateBegin
-	//set fullname = $2, about = $3, email = $4
 	num := 2
 	var args []interface{}
 	args = append(args, user.Nickname)
@@ -106,10 +107,10 @@ func (s *Repository) UserProfileUpdate(u *models.User) (*models.User, error) {
 	query += " " + userProfileUpdateEnd
 	err := s.db.Get(user, query, args...)
 	if err == nil {
-		//log.Success(message)
-		//return nil, nil
+		log.Success(message)
 		return DbToJsonModel(user), nil
 	}
 	err = utils.TranslateDbError(err)
+	log.Error(message, err)
 	return nil, err
 }

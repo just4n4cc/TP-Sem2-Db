@@ -3,6 +3,7 @@ package delivery
 import (
 	"github.com/just4n4cc/tp-sem2-db/internal/response"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/service"
+	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 )
 
@@ -19,8 +20,8 @@ func NewDelivery(useCase service.UseCase) *Delivery {
 }
 
 func (h *Delivery) ServiceClear(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ServiceClear:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ServiceClear:"
+	log.Debug(message + "started")
 
 	err := h.useCase.ServiceClear()
 	if err != nil {
@@ -33,8 +34,8 @@ func (h *Delivery) ServiceClear(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ServiceStatus(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ServiceStatus:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ServiceStatus:"
+	log.Debug(message + "started")
 
 	s, err := h.useCase.ServiceStatus()
 	if err != nil {

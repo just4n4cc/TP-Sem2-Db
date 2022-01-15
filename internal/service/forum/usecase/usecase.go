@@ -34,13 +34,6 @@ func (a *Usecase) ForumThreadCreate(thread *models.Thread) (*models.Thread, erro
 	if thread.Title == "" || thread.Forum == "" || thread.Author == "" || thread.Message == "" {
 		return nil, models.ModelFieldError
 	}
-	//if thread.Slug == "" {
-	//u, err := uuid.NewV4()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return a.repositoryThread.ThreadCreate(thread, u.String())
-	//}
 	return a.repositoryThread.ThreadCreate(thread)
 }
 func (a *Usecase) ForumUsers(slug string, so *models.SortOptions) ([]*models.User, error) {

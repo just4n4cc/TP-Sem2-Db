@@ -6,6 +6,7 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/response"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/post"
+	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 	"strconv"
 )
@@ -32,12 +33,12 @@ type PostGetResponse struct {
 }
 
 func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "PostGet:"
-	//logger.Debug(message + "started")
+	message := logMessage + "PostGet:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "id = " + vars[id])
+	log.Debug(message + "id = " + vars[id])
 	query := r.URL.Query()
-	//logger.Debug(message+"related = ", query[related])
+	log.Debug(message+"related = ", query[related])
 
 	p, f, t, u, err := h.useCase.PostGet(vars[id], query[related])
 	if err != nil {
@@ -69,10 +70,10 @@ func (h *Delivery) PostGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) PostUpdate(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "PostUpdate:"
-	//logger.Debug(message + "started")
+	message := logMessage + "PostUpdate:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "id = " + vars[id])
+	log.Debug(message + "id = " + vars[id])
 
 	var p = new(models.Post)
 	err := json.NewDecoder(r.Body).Decode(p)

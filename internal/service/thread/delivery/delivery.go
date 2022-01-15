@@ -7,6 +7,7 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/response"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/thread"
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
+	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 )
 
@@ -24,10 +25,10 @@ func NewDelivery(useCase thread.UseCase) *Delivery {
 }
 
 func (h *Delivery) ThreadCreate(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ThreadCreate:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ThreadCreate:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug or id = " + vars[slugOrId])
+	log.Debug(message + "slug or id = " + vars[slugOrId])
 
 	var posts []*models.Post
 	err := json.NewDecoder(r.Body).Decode(&posts)
@@ -54,20 +55,18 @@ func (h *Delivery) ThreadCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ThreadGet(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ThreadGet:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ThreadGet:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug or id = " + vars[slugOrId])
+	log.Debug(message + "slug or id = " + vars[slugOrId])
 
 	t, err := h.useCase.ThreadBySlugOrId(vars[slugOrId])
 	if err != nil {
 		if err != models.NotFoundError {
 			response.UnknownError(&w)
-			//response.UnknownError(&w, err, message)
 			return
 		}
 
-		//w.WriteHeader(response.GetStatus(err, message))
 		w.WriteHeader(response.GetStatus(err))
 		e := models.Error{Message: err.Error()}
 		response.SetBody(&w, e)
@@ -79,10 +78,10 @@ func (h *Delivery) ThreadGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ThreadUpdate(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ThreadUpdate:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ThreadUpdate:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug or id = " + vars[slugOrId])
+	log.Debug(message + "slug or id = " + vars[slugOrId])
 
 	var t = new(models.Thread)
 	err := json.NewDecoder(r.Body).Decode(t)
@@ -109,15 +108,15 @@ func (h *Delivery) ThreadUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ThreadPosts(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ThreadPosts:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ThreadPosts:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug or id = " + vars[slugOrId])
+	log.Debug(message + "slug or id = " + vars[slugOrId])
 	so, err := utils.GetSortOptionsFromRequest(r)
 	if err != nil {
 		response.UnknownError(&w)
 	}
-	//logger.Debug(message+"sort options = ", so)
+	log.Debug(message+"sort options = ", so)
 
 	posts, err := h.useCase.ThreadPosts(vars[slugOrId], so)
 	if err != nil {
@@ -137,10 +136,10 @@ func (h *Delivery) ThreadPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) ThreadVote(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "ThreadVote:"
-	//logger.Debug(message + "started")
+	message := logMessage + "ThreadVote:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "slug or id = " + vars[slugOrId])
+	log.Debug(message + "slug or id = " + vars[slugOrId])
 
 	var v = new(models.Vote)
 	err := json.NewDecoder(r.Body).Decode(v)

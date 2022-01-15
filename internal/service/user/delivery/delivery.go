@@ -6,6 +6,7 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/models"
 	"github.com/just4n4cc/tp-sem2-db/internal/response"
 	"github.com/just4n4cc/tp-sem2-db/internal/service/user"
+	log "github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
 )
 
@@ -23,10 +24,10 @@ func NewDelivery(useCase user.UseCase) *Delivery {
 }
 
 func (h *Delivery) UserCreate(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "UserCreate:"
-	//logger.Debug(message + "started")
+	message := logMessage + "UserCreate:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "nickname = " + vars[nickname])
+	log.Debug(message + "nickname = " + vars[nickname])
 
 	var u = new(models.User)
 	err := json.NewDecoder(r.Body).Decode(u)
@@ -53,10 +54,10 @@ func (h *Delivery) UserCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) UserProfileGet(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "UserProfileGet:"
-	//logger.Debug(message + "started")
+	message := logMessage + "UserProfileGet:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "nickname = " + vars[nickname])
+	log.Debug(message + "nickname = " + vars[nickname])
 
 	u, err := h.useCase.UserProfileGet(vars[nickname])
 	if err != nil {
@@ -76,10 +77,10 @@ func (h *Delivery) UserProfileGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Delivery) UserProfileUpdate(w http.ResponseWriter, r *http.Request) {
-	//message := logMessage + "UserProfileUpdate:"
-	//logger.Debug(message + "started")
+	message := logMessage + "UserProfileUpdate:"
+	log.Debug(message + "started")
 	vars := mux.Vars(r)
-	//logger.Debug(message + "nickname = " + vars[nickname])
+	log.Debug(message + "nickname = " + vars[nickname])
 
 	var u = new(models.User)
 	err := json.NewDecoder(r.Body).Decode(u)
@@ -90,7 +91,6 @@ func (h *Delivery) UserProfileUpdate(w http.ResponseWriter, r *http.Request) {
 	u.Nickname = vars[nickname]
 
 	u, err = h.useCase.UserProfileUpdate(u)
-	//err = h.useCase.UserProfileUpdate(u)
 	if err != nil {
 		if err != models.AlreadyExistsError && err != models.NotFoundError {
 			response.UnknownError(&w)

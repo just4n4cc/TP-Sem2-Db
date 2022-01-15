@@ -21,7 +21,6 @@ import (
 	"github.com/just4n4cc/tp-sem2-db/internal/utils"
 	"github.com/just4n4cc/tp-sem2-db/pkg/logger"
 	"net/http"
-	"strings"
 )
 
 const logMessage = "app:"
@@ -39,7 +38,7 @@ func NewApp() (*App, error) {
 	const message = logMessage + "NewApp"
 	db, err := utils.InitDb()
 	if err != nil {
-		//logger.Error(message, err)
+		logger.Error(message, err)
 		return nil, err
 	}
 
@@ -74,9 +73,7 @@ func contentTypeMiddleware(next http.Handler) http.Handler {
 func urlPrintMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.String()
-		if strings.Contains(url, "service") {
-			logger.Info("URL: " + url)
-		}
+		logger.Info("URL: " + url)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -84,7 +81,7 @@ func urlPrintMiddleware(next http.Handler) http.Handler {
 func newRouter(app *App) *mux.Router {
 	r := mux.NewRouter()
 	r.Use(contentTypeMiddleware)
-	//r.Use(urlPrintMiddleware)
+	r.Use(urlPrintMiddleware)
 	rApi := r.PathPrefix("/api").Subrouter()
 
 	rApi.HandleFunc("/forum/create", app.deliveryForum.ForumCreate).Methods("POST")
@@ -117,20 +114,18 @@ func (app *App) Run() error {
 		defer app.db.Close()
 	}
 
-	//message := logMessage + "Run:"
-	//logger.Info(message + "start")
+	message := logMessage + "Run:"
+	logger.Info(message + "start")
 
 	port := ":5000"
 	r := newRouter(app)
 	s := &http.Server{
 		Addr:    port,
 		Handler: r,
-		//ReadTimeout:  10 * time.Second,
-		//WriteTimeout: 10 * time.Second,
 	}
 	err := s.ListenAndServe()
 	if err != nil {
-		//logger.Error(message, err)
+		logger.Error(message, err)
 		return err
 	}
 	return nil

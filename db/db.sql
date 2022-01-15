@@ -1,6 +1,7 @@
 -- INIT ALL
 CREATE EXTENSION IF NOT EXISTS citext;
 
+-- TABLES ----------------------------------
 CREATE UNLOGGED TABLE "User"
 (
     id SERIAL PRIMARY KEY,
@@ -62,19 +63,15 @@ CREATE UNLOGGED TABLE ForumUsers
     UNIQUE (forum, "user")
 );
 
+
+-- TRIGGERS ----------------------------------
 -- POST INSERT
 CREATE FUNCTION post_insert() RETURNS TRIGGER AS $post_insert$
 DECLARE
     prevpath INT[];
---     t INT;
 BEGIN
-    --     PATH
     IF new.parent != 0 THEN
---         SELECT path, thread FROM Post WHERE id = new.parent INTO prevpath, t;
         SELECT path, thread FROM Post WHERE id = new.parent INTO prevpath;
---         IF t <> new.thread OR t is null THEN
---             RAISE 'duplicate key value violates unique constraint';
---         END IF;
         new.path := array_append(prevpath, new.id);
     ELSE
         new.path[1] := new.id;
@@ -132,7 +129,6 @@ BEGIN
     IF forum != '' THEN
         new."forum" := forum;
     END IF;
---     RAISE NOTICE 'inserted: "%", nickname: "%"', new, nick;
     RETURN new;
 END
 $thread_insert$ LANGUAGE plpgsql;
@@ -149,16 +145,8 @@ END
 $post_update$ LANGUAGE plpgsql;
 CREATE TRIGGER post_update BEFORE UPDATE ON Post FOR EACH ROW EXECUTE PROCEDURE post_update();
 
---
--- -- POST INSERT FORUM USER
--- CREATE FUNCTION post_insert_forum_user() RETURNS TRIGGER AS $post_insert_forum_user$
--- BEGIN
---     UPDATE Forum SET posts = posts + 1 WHERE slug = new.forum;
---     RETURN new;
--- END
--- $post_insert_forum_user$ LANGUAGE plpgsql;
--- CREATE TRIGGER post_insert_forum_user AFTER INSERT ON Post FOR EACH ROW EXECUTE PROCEDURE post_insert_forum_user();
 
+-- INDEXES -----------------
 CREATE INDEX IF NOT EXISTS idx_nickname_user ON "User" USING hash(nickname);
 CREATE INDEX IF NOT EXISTS idx_email_user ON "User" USING hash(email);
 
@@ -166,25 +154,16 @@ CREATE INDEX IF NOT EXISTS idx_slug_forum ON Forum USING hash(slug);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slug_thread ON Thread USING btree(slug) WHERE slug <> '';
 CREATE INDEX IF NOT EXISTS idx_forum_thread ON Thread USING hash(forum);
--- DROP INDEX tpdb."idx_forum_thread";
--- CREATE INDEX IF NOT EXISTS idx_forum_thread ON Thread USING btree(forum);
 CREATE INDEX IF NOT EXISTS idx_created_thread ON Thread USING btree(created);
 CREATE INDEX IF NOT EXISTS idx_forum_created_thread ON Thread USING btree(forum, created);
 
 CREATE INDEX IF NOT EXISTS idx_thread_post ON Post USING btree(thread);
--- CREATE INDEX IF NOT EXISTS idx_thread_parent_post ON Post USING btree(thread, parent);
--- DROP INDEX idx_thread_parent_post;
 CREATE INDEX IF NOT EXISTS idx_thread_id_post ON Post USING btree(thread, id);
 CREATE INDEX IF NOT EXISTS idx_created_post ON Post USING btree(created);
 CREATE INDEX IF NOT EXISTS idx_path1_post ON Post USING btree((path[1]));
--- CREATE INDEX IF NOT EXISTS idx_id_path1_post ON Post USING btree(id, (path[1]));
--- CREATE INDEX IF NOT EXISTS idx_id_path1_post ON Post USING btree((path[1]), id);
--- DROP INDEX IF EXISTS idx_id_path1_post;
 CREATE INDEX IF NOT EXISTS idx_path_post ON Post USING btree(path);
 CREATE INDEX IF NOT EXISTS idx_parent_post ON Post USING btree(parent);
 CREATE INDEX IF NOT EXISTS idx_forum_post ON Post USING hash(forum);
--- CREATE INDEX IF NOT EXISTS idx_path_post ON Post USING btree(path, id);
--- DROP INDEX idx_path_post;
 
 CREATE INDEX IF NOT EXISTS idx_user_threadid_vote ON Vote USING btree("user", threadid);
 

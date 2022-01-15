@@ -71,14 +71,3 @@ func (a *UseCase) PostUpdate(post *models.Post) (*models.Post, error) {
 	}
 	return a.repositoryPost.PostUpdate(post)
 }
-
-//func (a *UseCase) PostCreate(p *models.Post) (*models.Post, error) {
-//	if p.Message == "" || p.Forum == "" || p.Author
-//}
-//
-//func (a *UseCase) PostGet(id string, related []string) (*models.Post, *models.User, *models.Thread, *models.Forum, error) {
-//
-//}
-//func (a *UseCase) PostUpdate(*models.Post) (*models.Post, error) {
-//
-//}
