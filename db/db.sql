@@ -160,15 +160,15 @@ CREATE INDEX IF NOT EXISTS idx_forum_created_thread ON Thread USING btree(forum,
 CREATE INDEX IF NOT EXISTS idx_thread_post ON Post USING btree(thread);
 CREATE INDEX IF NOT EXISTS idx_thread_id_post ON Post USING btree(thread, id);
 CREATE INDEX IF NOT EXISTS idx_created_post ON Post USING btree(created);
-CREATE INDEX IF NOT EXISTS idx_path1_post ON Post USING btree((path[1]));
 CREATE INDEX IF NOT EXISTS idx_path_post ON Post USING btree(path);
+CREATE INDEX IF NOT EXISTS idx_path1_post ON Post USING btree((path[1]));
 CREATE INDEX IF NOT EXISTS idx_parent_post ON Post USING btree(parent);
 CREATE INDEX IF NOT EXISTS idx_forum_post ON Post USING hash(forum);
 
 CREATE INDEX IF NOT EXISTS idx_user_threadid_vote ON Vote USING btree("user", threadid);
 
 CREATE INDEX IF NOT EXISTS idx_forum_forumusers ON ForumUsers USING hash(forum);
-CREATE INDEX IF NOT EXISTS idx_forum_forumusers ON ForumUsers USING hash("user");
+CREATE INDEX IF NOT EXISTS idx_user_forumusers ON ForumUsers USING hash("user");
 CREATE INDEX IF NOT EXISTS idx_forum_user_forumusers ON ForumUsers USING btree(forum, "user");
 
 VACUUM;
