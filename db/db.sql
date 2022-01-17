@@ -169,7 +169,6 @@ CREATE INDEX IF NOT EXISTS idx_user_threadid_vote ON Vote USING btree("user", th
 
 CREATE INDEX IF NOT EXISTS idx_forum_forumusers ON ForumUsers USING hash(forum);
 CREATE INDEX IF NOT EXISTS idx_user_forumusers ON ForumUsers USING hash("user");
-CREATE INDEX IF NOT EXISTS idx_forum_user_forumusers ON ForumUsers USING btree(forum, "user");
 
 VACUUM;
 VACUUM ANALYZE;
